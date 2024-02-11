@@ -1,6 +1,7 @@
 import os
 import select
 import socket
+import threading
 from typing import Union, Any
 import time
 # Custom imports...
@@ -10,6 +11,7 @@ from src.network.connection import (create_tcp_socket,
                                     handle_udp_connection)
 from src.cache.history import History
 from src.db.supabase import HoneyPotHandler
+from src.protocol.ssh import FakeSSHServer
 
 # CONSTANTS DECLARATION AREA
 ONLY_TCP: int = 44
@@ -29,7 +31,7 @@ class HoneyPot:
                  nodes_cluster: list[str] = None,
                  interface: int = NO_SHELL_HANDLER
                  ) -> None:
-        """"""
+        """HoneyPot Device Simulation"""
         self._name: str = name
         self._host: str = '0.0.0.0' if host == 'public' else 'localhost'
         self._ports: Union[list[int], str] = ports if ports != 'all' else ALL_PORTS
@@ -102,6 +104,21 @@ class HoneyPot:
                         self._db.add_log(log)
                         self._history.store(host.ip4[0])
                 print(self._history.show())
+
+    def add_interactive_shell(self, on_ports: list[int], mode: str) -> None:
+        for port in on_ports:
+            if 65535 >= port > 0:
+                if port in self._ports:
+                    self._ports.remove(port)
+                if mode == 'ssh':
+
+                    ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
+                    threading.Thread(target=ssh_server.start_server, args=(self._host, port), daemon=True).start()
+
+                if mode == 'telnet':
+                    pass
+                if mode == 'http':
+                    pass
 
     def run(self) -> None:
         """"""

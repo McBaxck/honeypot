@@ -1,5 +1,4 @@
 import os
-
 from postgrest import APIResponse
 from supabase import create_client, Client
 from dataclasses import dataclass
@@ -51,3 +50,14 @@ class HoneyPotHandler(SupabaseHandler):
 
     def add_log(self, log: dict) -> APIResponse:
         return self.insert(table='logs', data=log)
+
+
+class SSHServerCommandHandler(SupabaseHandler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def fetch_all_logs(self) -> APIResponse:
+        return self.fetch_all(table='ssh_logs')
+
+    def add_log(self, log: dict) -> APIResponse:
+        return self.insert(table='ssh_logs', data=log)

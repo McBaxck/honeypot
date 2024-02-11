@@ -2,7 +2,7 @@ import socket
 import time
 import random
 import ipaddress
-from src.host.host import Host
+from src.network.host import Host
 
 
 def create_udp_socket(host: str, port: int, timeout=None) -> socket.socket:

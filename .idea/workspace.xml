@@ -4,31 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/honeypot.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyvenv.cfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cache/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cache/history.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db/supabase.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/host/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/host/host.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/host/system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/network/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/network/connection.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/ssh.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_rsa" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_rsa.pub" afterDir="false" />
+    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.1.0102">
+      <change afterPath="$PROJECT_DIR$/src/host/devices/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/linux/Dockerfile-ubuntu" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/linux/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/linux/registry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/windows/Dockerfile-windows" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/windows/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/devices/windows/registry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/docker_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/host/shell.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/hp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/db/supabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/supabase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/host/host.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/host.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/host/system.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/network/connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/connection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/ssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_rsa" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/.ssh/test_rsa" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_rsa.pub" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/.ssh/test_rsa.pub" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +33,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Dockerfile" />
         <option value="Python Script" />
       </list>
     </option>
@@ -46,7 +42,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/src/protocol/ssh.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/src/protocol/ssh.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -68,7 +64,8 @@
     "Python.main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "adam-develop",
+    "last_opened_file_path": "/Users/mcbaxck/PycharmProjects/honeypot/src/host/devices/windows",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -77,6 +74,17 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/host/devices/windows" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/network" />
+      <recent name="$PROJECT_DIR$/src/host/devices/linux" />
+      <recent name="$PROJECT_DIR$/src/host/devices/windows" />
+      <recent name="$PROJECT_DIR$/src/host/.ssh" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="honeypot" />
@@ -118,17 +126,39 @@
       <option name="presentableId" value="Default" />
       <updated>1706615350775</updated>
       <workItem from="1706615353291" duration="7218000" />
-      <workItem from="1706693482726" duration="25588000" />
+      <workItem from="1706693482726" duration="92167000" />
     </task>
+    <task id="LOCAL-00001" summary="Basecode v0.1.0102">
+      <option name="closed" value="true" />
+      <created>1706818191771</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1706818191771</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Basecode v0.1.0102" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.1.0102" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1706818080740" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1707666169079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

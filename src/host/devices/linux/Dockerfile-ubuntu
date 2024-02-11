@@ -1,0 +1,24 @@
+# Utiliser l'image officielle Ubuntu comme image de base
+FROM ubuntu:latest
+
+# Mettre à jour la liste des paquets et installer quelques utilitaires de base
+RUN apt-get update && apt-get install -y \
+    curl \
+    vim \
+    wget \
+    net-tools \
+    nmap \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Créer un nouvel utilisateur "monutilisateur" et son groupe
+RUN groupadd -r john7 && useradd -r -g john7 -m -d /home/john7 -s /bin/bash john7
+
+# Changer l'utilisateur par défaut pour "monutilisateur"
+USER john7
+
+# Définir le répertoire de travail
+WORKDIR /home/john7
+
+# Définir le point d'entrée pour interagir avec le shell lorsque le conteneur démarre
+CMD ["tail", "-f", "/dev/null"]
