@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 class DockerManager:
     def __init__(self):
         self.client = docker.from_env()
+        self.container_id: str = ''
 
     def create_and_run_container(self, img, on_ports=None):
         try:
@@ -110,7 +111,8 @@ class DockerManager:
         """
         try:
             # Exécuter le conteneur
-            container = self.client.containers.run(image_name, detach=True, name=container_name)
+            container = self.client.containers.run(image_name, detach=True, name=container_name, ports={'22/tcp': 2222})
+            self.container_id = container.id
             print(f"Conteneur {container.id} lancé avec succès à partir de l'image {image_name}.")
             return container
         except Exception as e:
@@ -172,18 +174,35 @@ class DockerManager:
         :param command: Commande à exécuter à l'intérieur du conteneur.
         :param client_channel: Canal Paramiko pour envoyer la sortie de la commande au client.
         """
+        # try:
+        #     # Exécute la commande dans un conteneur Docker et redirige la sortie vers le canal du client via Paramiko
+        #     exec_id = self.client.api.exec_create(container=container_id_or_name,
+        #                                           cmd=command, stdout=True, stderr=True,
+        #                                           privileged=True)
+        #     output_generator = self.client.api.exec_start(exec_id, stream=True, tty=True, detach=False)
+        #     # Lit en temps réel la sortie de la commande et l'envoie au client
+        #     for output_chunk in output_generator:
+        #         output: str = '\r\n'+output_chunk.decode("utf-8").replace('\r', '\r\n').replace('\n', '\r\n').replace('\t', '\r\n')
+        #         print('output-> ', output)
+        #         channel.sendall(output.encode('utf-8'))
+        # except Exception as e:
+        #     print(f"Erreur lors de l'exécution de la commande dans le conteneur {container_id_or_name}: {e}")
+        #     channel.sendall(f"error: {e}".encode('utf-8'))
         try:
-            # Exécute la commande dans un conteneur Docker et redirige la sortie vers le canal du client via Paramiko
-            exec_id = self.client.api.exec_create(container=container_id_or_name,
-                                                  cmd=command, stdout=True, stderr=True, privileged=True,)
-            output_generator = self.client.api.exec_start(exec_id, stream=True, tty=True)
-            # Lit en temps réel la sortie de la commande et l'envoie au client
-            for output_chunk in output_generator:
-                output: str = '\r\n'+output_chunk.decode("utf-8").replace('\r', '\r\n').replace('\n', '\r\n').replace('\t', '\r\n')
-                channel.sendall(output.encode('utf-8'))
+            # Exécute un shell interactif dans le conteneur Docker
+            exec_id = self.client.api.exec_create(container=container_id_or_name, cmd="/bin/sh", stdin=True,
+                                                  stdout=True, stderr=True, tty=True)
+            stream = self.client.api.exec_start(exec_id, stream=True, tty=True)
+
+            # Redirige le flux de sortie du shell vers le canal Paramiko
+            for line in stream:
+                try:
+                    channel.sendall(line)
+                except Exception as e:
+                    print(f"Erreur lors de la transmission du shell: {e}")
+                    break
         except Exception as e:
-            print(f"Erreur lors de l'exécution de la commande dans le conteneur {container_id_or_name}: {e}")
-            channel.sendall(f"error: {e}".encode('utf-8'))
+            print(f"Erreur lors du démarrage du shell dans le conteneur {container_id_or_name}: {e}")
 
     def handle_signal(self, client_channel, stop_event):
         """
