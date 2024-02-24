@@ -111,7 +111,11 @@ class DockerManager:
         """
         try:
             # Exécuter le conteneur
-            container = self.client.containers.run(image_name, detach=True, name=container_name, ports={'22/tcp': 2222})
+            container = self.client.containers.run(image_name,
+                                                   detach=True,
+                                                   name=container_name,
+                                                   ports={'22/tcp': 2222}
+                                                   )
             self.container_id = container.id
             print(f"Conteneur {container.id} lancé avec succès à partir de l'image {image_name}.")
             return container

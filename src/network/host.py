@@ -1,6 +1,7 @@
 import uuid
 import ipaddress
 from typing import Tuple, Union
+from src.host import nslookup_with_geolocation
 
 
 class Host(object):

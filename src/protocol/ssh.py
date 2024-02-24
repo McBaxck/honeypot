@@ -1,16 +1,19 @@
 import os
 import select
 import time
-
 import paramiko
 import threading
 import socket
 
+from src.db.supabase import SSHServerCommandHandler
 from src.host.devices.linux.registry import Ubuntu
 
 DEFAULT_SSH_USERNAME: str = "root"
 DEFAULT_SSH_PASSWORD: str = "p@ssw0rd"
 DEFAULT_CWD: str = os.getcwd()
+
+DEFAULT_USER: str = 'sshuser'
+DEFAULT_PWD: str = 'password'
 
 
 class Server(paramiko.ServerInterface):
@@ -41,6 +44,7 @@ class FakeSSHServer:
         self.host_key = paramiko.RSAKey(filename=host_key)
         self.device: Ubuntu = Ubuntu()
         self.cmd_history: list[str] = []
+        self._db: SSHServerCommandHandler = SSHServerCommandHandler()
 
     def handle_client(self, client):
         try:
@@ -51,24 +55,39 @@ class FakeSSHServer:
             transport.start_server(server=server)
             channel = transport.accept(20)
 
+            # Detect if channel is already close
             if channel is None:
                 raise Exception("Client SSH n'a pas ouvert de canal.")
 
             # Connexion au conteneur Docker
             docker_transport = paramiko.Transport(('0.0.0.0', 2222))
-            docker_transport.connect(username='sshuser', password='password')
+            docker_transport.connect(username=DEFAULT_USER, password=DEFAULT_PWD)
             docker_channel = docker_transport.open_session()
             docker_channel.get_pty()
             docker_channel.invoke_shell()
 
+            # Client buffer to handle commands
+            client_buffer: str = ""
+
             while True:
                 # Attendre les données disponibles sur les deux canaux
                 readable, _, _ = select.select([channel, docker_channel], [], [], 0.0)
-
                 for read_channel in readable:
                     if read_channel is channel:
                         # Transmettre les données du client au Docker
                         data = channel.recv(1024)
+                        client_buffer += data.decode()
+                        if ('\r' in client_buffer) or ('\n' in client_buffer) or ('\r\n' in client_buffer):
+                            print("Detect command -> ", client_buffer)
+                            log: dict = {
+                                'source_ip': '',
+                                'source_port': 0,
+                                'dest_ip': '',
+                                'dest_port': 0,
+                                'command': client_buffer
+                            }
+                            self._db.add_log(log)
+                            client_buffer = ""
                         if not data:
                             break  # Le client a fermé la connexion
                         docker_channel.send(data)
@@ -78,48 +97,12 @@ class FakeSSHServer:
                         if not data:
                             break  # Le canal Docker a été fermé
                         channel.send(data)
-
         except Exception as e:
             print(f"Erreur lors de la transmission du shell: {e}")
         finally:
-            # Fermeture des connexions SSH
-            channel.close()
+            # Close bidirectional channels...
             docker_channel.close()
-            docker_transport.close()
-            transport.close()
-
-    def fake_shell(self, channel: paramiko.Channel):
-        command_buffer: str = ""
-        # channel.send(bytes(f"\rjohn@server $> ", 'utf-8'))
-        if channel.closed:
-            print('Channel is closed.')
-        try:
-            command = channel.recv(4096).decode('utf-8')
-            command_buffer += command
-            if "\x7f" in command:
-                command_buffer = command_buffer[:-1]
-                # channel.send(bytes(f"\rjohn@server $> {command_buffer}", 'utf-8'))
-            if "\x03" in command_buffer:
-                # channel.send(bytes(f"\r\njohn@server $> ", 'utf-8'))
-                command_buffer = ""
-            elif "\x1a" in command_buffer:
-                # channel.send(bytes(f"\r\njohn@server $> ", 'utf-8'))
-                command_buffer = ""
-            elif "\x04" in command_buffer:
-                # channel.send(bytes(f"\r\njohn@server $> ", 'utf-8'))
-                command_buffer = ""
-            if ('\n' in command_buffer) or ('\r\n' in command_buffer) or ('\r' in command_buffer):
-                command, _, command_buffer = command_buffer.partition('\n')
-                encoded_command: bytes = command.strip().encode('utf-8')
-                print("executing command on thread-> ", encoded_command)
-                # threading.Thread(target=self.device.exec, args=(command, channel)).start()
-                channel.send(encoded_command)
-                self.cmd_history.append(command_buffer)
-                # channel.send(bytes(f"\r\njohn@server $> ", 'utf-8'))
-        except socket.timeout:
-            pass
-        except Exception as e:
-            print(f'Error: {e}')
+            channel.close()
 
     def start_server(self, host: str, port: int) -> None:
         """"""

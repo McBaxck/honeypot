@@ -4,11 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.1.1102">
+    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.1.1302">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/db/cache/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/db/cache/cache.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/firewall/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/firewall/embedded_fw.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/network/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/protocol/detector/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/protocol/detector/detector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/protocol/detector/ports.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/protocol/ftp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/protocol/telnet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/host/devices/linux/Dockerfile-ubuntu" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/devices/linux/Dockerfile-ubuntu" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/host/devices/linux/registry.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/devices/linux/registry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/hp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/host/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/host/docker_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/docker_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/network/connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/connection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/network/host.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/host.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/protocol/ssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -44,24 +59,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;adam-develop&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/mcbaxck/PycharmProjects/honeypot/src/host/devices/windows&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "adam-develop",
+    "last_opened_file_path": "/Users/mcbaxck/PycharmProjects/honeypot/src/protocol/detector",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/protocol/detector" />
       <recent name="$PROJECT_DIR$/src/host/devices/windows" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -115,7 +131,7 @@
       <workItem from="1706693482726" duration="100213000" />
       <workItem from="1707772714601" duration="5061000" />
       <workItem from="1707834231048" duration="7842000" />
-      <workItem from="1707859730814" duration="2348000" />
+      <workItem from="1707859730814" duration="42751000" />
     </task>
     <task id="LOCAL-00001" summary="Basecode v0.1.0102">
       <option name="closed" value="true" />
@@ -133,7 +149,15 @@
       <option name="project" value="LOCAL" />
       <updated>1707666491302</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Basecode v0.1.1302">
+      <option name="closed" value="true" />
+      <created>1707862199285</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1707862199285</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -154,9 +178,10 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Basecode v0.1.0102" />
     <MESSAGE value="Basecode v0.1.1102" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.1.1102" />
+    <MESSAGE value="Basecode v0.1.1302" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.1.1302" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1707861830706" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1708775833639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

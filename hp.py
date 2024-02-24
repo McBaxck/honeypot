@@ -1,47 +1,38 @@
+import ipaddress
 import os
 import select
 import socket
 import threading
+import datetime
 from typing import Union, Any
-import time
-# Custom imports...
+# CUSTOM IMPORTS -------------------
+from src.config import *
+from src.firewall.embedded_fw import EmbeddedFirewall
 from src.network.connection import (create_tcp_socket,
                                     create_udp_socket,
                                     handle_tcp_connection,
                                     handle_udp_connection)
 from src.cache.history import History
 from src.db.supabase import HoneyPotHandler
+from src.protocol.detector.detector import ProtocolDetector
 from src.protocol.ssh import FakeSSHServer
-
-# CONSTANTS DECLARATION AREA
-ONLY_TCP: int = 44
-ONLY_UDP: int = 45
-HYBRID: int = 46
-NO_SHELL_HANDLER: int = -1
-SHELL_HANDLER: int = 1
-ALL_PORTS: list[int] = [i for i in range(0, 65535)]
+from src.host import nslookup_with_geolocation
 
 
 class HoneyPot:
-    def __init__(self,
-                 name: str,
-                 host: str,
-                 ports: Union[list[int], str],
-                 mode: int = HYBRID,
-                 nodes_cluster: list[str] = None,
-                 interface: int = NO_SHELL_HANDLER
-                 ) -> None:
+    def __init__(self, holypot_config: HolyPotConfig) -> None:
         """HoneyPot Device Simulation"""
-        self._name: str = name
-        self._host: str = '0.0.0.0' if host == 'public' else 'localhost'
-        self._ports: Union[list[int], str] = ports if ports != 'all' else ALL_PORTS
-        self._mode: int = mode
-        self._nodes_cluster: list[str] = nodes_cluster
-        self._interface: int = interface
+        self._name: str = holypot_config.name
+        self._host: str = '0.0.0.0' if holypot_config.host == HOST.PUBLIC else 'localhost'
+        self._ports: Union[list[int], str] = holypot_config.ports if holypot_config.ports != 'all' else ALL_PORTS
+        self._mode: int = holypot_config.mode
+        self._nodes_cluster: list[str] = holypot_config.nodes_cluster
         self.poller: select.poll = select.poll()
         self.fd_to_socket: dict = {}
         self._history: History = History(buffer_size=4096)
         self._db: HoneyPotHandler = HoneyPotHandler()
+        self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
+        self._protocol_detector: ProtocolDetector = ProtocolDetector()
 
     @property
     def name(self) -> str:
@@ -81,28 +72,40 @@ class HoneyPot:
                 if event & select.POLLIN:
                     # TCP ---------------------------------
                     if sock.type == socket.SOCK_STREAM:
-                        host, data = handle_tcp_connection(sock)
+                        host, data, client, peer = handle_tcp_connection(sock)
+                        client_ip, client_port = sock.getsockname()
+                        if ipaddress.IPv4Address(client_ip).is_global:
+                            country: str = nslookup_with_geolocation(client_ip)
+                        elif ipaddress.IPv4Address(client_ip).is_private:
+                            country: str = "LOCAL_POS"
+                        else:
+                            country: str = "??"
+
                         log: dict[str, Any] = {'type': 'tcp',
-                                               'source_ip': host.ip4[0].__str__(),
-                                               'source_port': 0,
+                                               'source_ip': client_ip,
+                                               'source_port': client_port,
                                                'data': data.decode(),
-                                               'dest_port': 1,
+                                               'dest_port': peer[1],
                                                'dest_ip': self._host,
-                                               'protocol': '?'}
+                                               'protocol': self._protocol_detector.auto_detect(peer[1], data),
+                                               'country': country
+                                               }
                         self._db.add_log(log)
                         self._history.store(host.ip4[0])
+                        self._fw.add_connection(host.ip4[0].__str__())
                     # UDP ---------------------------------
                     if sock.type == socket.SOCK_DGRAM:
-                        host, data = handle_udp_connection(sock)
+                        host, data, client = handle_udp_connection(sock)
                         log: dict[str, Any] = {'type': 'udp',
                                                'source_ip': host.ip4[0].__str__(),
                                                'source_port': 0,
                                                'data': data.decode(),
                                                'dest_port': 1,
                                                'dest_ip': self._host,
-                                               'protocol': '?'}
+                                               'protocol': self._protocol_detector.auto_detect(client[1], data)}
                         self._db.add_log(log)
                         self._history.store(host.ip4[0])
+                        self._fw.add_connection(host.ip4[0].__str__())
                 print(self._history.show())
 
     def add_interactive_shell(self, on_ports: list[int], mode: str) -> None:
@@ -111,25 +114,31 @@ class HoneyPot:
                 if port in self._ports:
                     self._ports.remove(port)
                 if mode == 'ssh':
-
                     ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
                     threading.Thread(target=ssh_server.start_server, args=(self._host, port), daemon=True).start()
-
                 if mode == 'telnet':
                     pass
                 if mode == 'http':
                     pass
 
+    def _tcp(self) -> None:
+        pass
+
+    def _udp(self) -> None:
+        pass
+
     def run(self) -> None:
         """"""
         self._init_poller()
-        print("[•] Starting HP...")
+        print("[•] Welcome to the HolyPot Interface!")
         try:
+            print("[---] HolyPot is waiting for connections...")
             self.wait_for_connections()
         except KeyboardInterrupt:
+            print("[---] Say goodbye to HolyPot! See ya!")
             self.shutdown()
         finally:
-            print('Bye :)')
+            print('> Ended at {}'.format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     def shutdown(self) -> None:
         self.fd_to_socket.clear()
