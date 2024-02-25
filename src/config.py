@@ -60,6 +60,7 @@ class HolyPotConfig:
         self.nodes_cluster: list[str] = []
         self.fw_security: int = FIREWALL.ENABLE
 
+
 class HostConfig:
     def __init__(self) -> None:
         self._host_pub_ip: Optional[str] = None

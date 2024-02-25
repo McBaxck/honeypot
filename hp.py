@@ -2,6 +2,7 @@ import ipaddress
 import os
 import select
 import socket
+import ssl
 import threading
 import datetime
 from typing import Union, Any
@@ -17,6 +18,7 @@ from src.db.supabase import HoneyPotHandler
 from src.protocol.detector.detector import ProtocolDetector
 from src.protocol.ssh import FakeSSHServer
 from src.host import nslookup_with_geolocation
+from src.protocol.web.server import launch_web_server
 
 
 class HoneyPot:
@@ -72,41 +74,13 @@ class HoneyPot:
                 if event & select.POLLIN:
                     # TCP ---------------------------------
                     if sock.type == socket.SOCK_STREAM:
-                        host, data, client, peer = handle_tcp_connection(sock)
-                        client_ip, client_port = sock.getsockname()
-                        if ipaddress.IPv4Address(client_ip).is_global:
-                            country: str = nslookup_with_geolocation(client_ip)
-                        elif ipaddress.IPv4Address(client_ip).is_private:
-                            country: str = "LOCAL_POS"
-                        else:
-                            country: str = "??"
-
-                        log: dict[str, Any] = {'type': 'tcp',
-                                               'source_ip': client_ip,
-                                               'source_port': client_port,
-                                               'data': data.decode(),
-                                               'dest_port': peer[1],
-                                               'dest_ip': self._host,
-                                               'protocol': self._protocol_detector.auto_detect(peer[1], data),
-                                               'country': country
-                                               }
-                        self._db.add_log(log)
-                        self._history.store(host.ip4[0])
-                        self._fw.add_connection(host.ip4[0].__str__())
+                        self._tcp(sock)
                     # UDP ---------------------------------
                     if sock.type == socket.SOCK_DGRAM:
-                        host, data, client = handle_udp_connection(sock)
-                        log: dict[str, Any] = {'type': 'udp',
-                                               'source_ip': host.ip4[0].__str__(),
-                                               'source_port': 0,
-                                               'data': data.decode(),
-                                               'dest_port': 1,
-                                               'dest_ip': self._host,
-                                               'protocol': self._protocol_detector.auto_detect(client[1], data)}
-                        self._db.add_log(log)
-                        self._history.store(host.ip4[0])
-                        self._fw.add_connection(host.ip4[0].__str__())
-                print(self._history.show())
+                        self._udp(sock)
+                    if sock.type == ssl.SSLSocket:
+                        print("SSL handshake")
+                print("Current History -> ", self._history.show())
 
     def add_interactive_shell(self, on_ports: list[int], mode: str) -> None:
         for port in on_ports:
@@ -119,13 +93,51 @@ class HoneyPot:
                 if mode == 'telnet':
                     pass
                 if mode == 'http':
-                    pass
+                    web_server_thread: threading.Thread = threading.Thread(target=launch_web_server, args=(port,),
+                                                                           daemon=True)
+                    web_server_thread.start()
 
-    def _tcp(self) -> None:
-        pass
+    def _tcp(self, sock: socket.socket) -> None:
+        host, data, client, peer = handle_tcp_connection(sock)
+        client_ip, client_port = sock.getsockname()
+        try:
+            self.register_in_database('tcp', str(client_ip), client_port, data.decode(),
+                                      peer[1], self._host)
+        except ConnectionRefusedError:
+            print("Connection refused, pass...")
+        except UnicodeDecodeError:
+            self.register_in_database('tcp', str(client_ip), client_port, str(data),
+                                      peer[1], self._host)
+        self._history.store(host.ip4[0])
+        self._fw.add_connection(host.ip4[0].__str__())
 
-    def _udp(self) -> None:
-        pass
+    def _udp(self, sock: socket.socket) -> None:
+        host, data, client = handle_udp_connection(sock)
+
+        self.register_in_database('udp', host.ip4[0].__str__(), client[1],
+                                  data.decode(), 0, self._host)
+        self._history.store(host.ip4[0])
+        self._fw.add_connection(host.ip4[0].__str__())
+
+    def register_in_database(self, communication_type: str, source_ip: str, source_port: int,
+                             data: str, dest_port: int, dest_ip: str) -> None:
+        if ipaddress.IPv4Address(dest_ip).is_global:
+            country: str = nslookup_with_geolocation(dest_ip)
+        elif ipaddress.IPv4Address(dest_ip).is_private:
+            country: str = "LOCAL_POS"
+        else:
+            country: str = "??"
+        log: dict[str, Any] = {
+            'type': communication_type,
+            'source_ip': source_ip,
+            'source_port': source_port,
+            'data': data,
+            'dest_port': dest_port,
+            'dest_ip': dest_ip,
+            'protocol': self._protocol_detector.auto_detect(source_port, data.encode()),
+            'country': country
+        }
+        self._db.add_log(log)
 
     def run(self) -> None:
         """"""

@@ -1,4 +1,5 @@
 import socket
+import ssl
 import time
 import random
 import ipaddress
@@ -35,7 +36,10 @@ def handle_tcp_connection(sock: socket.socket) -> tuple[Host, bytes, socket, Any
     time.sleep(.5 * random.random())
     data = client.recv(2048)
     client.sendall(data)
-    print(f"TCP > Received {data.decode()} from {address[0]}:{address[1]}")
+    try:
+        print(f"TCP > Received {data.decode()} from {address[0]}:{address[1]}")
+    except UnicodeDecodeError:
+        print(f"TCP > Received {data} from {address[0]}:{address[1]}")
     return host, data, client, address
 
 
@@ -49,3 +53,26 @@ def handle_udp_connection(sock: socket.socket) -> tuple[Host, bytes, Any]:
                       os='?')
     print(f"UDP > Received {data.decode()} from {address[0]}:{address[1]}")
     return host, data, address
+
+
+def handle_ssl_connection(sock: socket.socket, ssl_context: ssl.SSLContext) -> tuple[Host, bytes, socket.socket, Any]:
+    """
+    Gère une connexion SSL.
+
+    :param sock: Le socket d'écoute TCP.
+    :param ssl_context: Le contexte SSL pour envelopper le socket TCP.
+    :return: Un tuple contenant les informations de l'hôte, les données reçues,
+             le socket client SSL et l'adresse du client.
+    """
+    client_socket, address = sock.accept()
+    ssl_client_socket = ssl_context.wrap_socket(client_socket, server_side=True)
+
+    host: Host = Host(name='?',
+                      mac='?',
+                      ip4=(ipaddress.ip_address(address[0]),),
+                      os='??')
+    time.sleep(.5 * random.random())
+    data = ssl_client_socket.recv(2048)
+    ssl_client_socket.sendall(data)
+    print(f"SSL > Received {data.decode()} from {address[0]}:{address[1]}")
+    return host, data, ssl_client_socket, address
