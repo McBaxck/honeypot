@@ -8,7 +8,7 @@ import os
 
 class WebServer(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.path = 'index.html'
+        self.path = 'src/protocol/web/index.html'
         client_ip = self.client_address[0]
         user_agent = self.headers['User-Agent']
         request_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())

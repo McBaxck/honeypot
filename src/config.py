@@ -131,5 +131,9 @@ class HostConfig:
     def host_current_iface(self) -> str:
         return self._host_current_iface
 
+    @property
+    def devices(self) -> list:
+        return self._devices
+
     def _scan_network(self, network) -> None:
         self._devices = scan_network(network)

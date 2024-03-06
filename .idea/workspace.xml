@@ -4,27 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.1.1302">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db/cache/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db/cache/cache.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/firewall/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/firewall/embedded_fw.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/network/utils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/detector/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/detector/detector.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/detector/ports.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/ftp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/telnet.py" afterDir="false" />
+    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.1.2602">
+      <change afterPath="$PROJECT_DIR$/api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/hp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/hp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/host/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/host/docker_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/host/docker_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/network/connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/connection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/network/host.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/host.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/ssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/web/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/web/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,8 +25,33 @@
       </list>
     </option>
   </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;McBaxck&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="04a59f87-138c-46d5-a3f1-1922097c83a8" />
+        <option name="url" value="https://github.com/McBaxck/honeypot.git" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/protocol/ssh.py" root0="FORCE_HIGHLIGHTING" />
@@ -59,32 +70,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "adam-develop",
-    "last_opened_file_path": "/Users/mcbaxck/PycharmProjects/honeypot/src/protocol/detector",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;adam-develop&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/mcbaxck/PycharmProjects/honeypot/src/protocol/detector&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/protocol/detector" />
       <recent name="$PROJECT_DIR$/src/host/devices/windows" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/src/protocol/_http" />
       <recent name="$PROJECT_DIR$/src/network" />
       <recent name="$PROJECT_DIR$/src/host/devices/linux" />
-      <recent name="$PROJECT_DIR$/src/host/devices/windows" />
-      <recent name="$PROJECT_DIR$/src/host/.ssh" />
     </key>
   </component>
   <component name="RunManager">
@@ -131,7 +143,8 @@
       <workItem from="1706693482726" duration="100213000" />
       <workItem from="1707772714601" duration="5061000" />
       <workItem from="1707834231048" duration="7842000" />
-      <workItem from="1707859730814" duration="42751000" />
+      <workItem from="1707859730814" duration="65250000" />
+      <workItem from="1708965672536" duration="21743000" />
     </task>
     <task id="LOCAL-00001" summary="Basecode v0.1.0102">
       <option name="closed" value="true" />
@@ -157,7 +170,31 @@
       <option name="project" value="LOCAL" />
       <updated>1707862199285</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Basecode v0.1.2402">
+      <option name="closed" value="true" />
+      <created>1708783566552</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1708783566552</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Basecode v0.1.2402">
+      <option name="closed" value="true" />
+      <created>1708783588257</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1708783588257</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Basecode v0.1.2602">
+      <option name="closed" value="true" />
+      <created>1708902891008</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1708902891008</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -179,9 +216,11 @@
     <MESSAGE value="Basecode v0.1.0102" />
     <MESSAGE value="Basecode v0.1.1102" />
     <MESSAGE value="Basecode v0.1.1302" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.1.1302" />
+    <MESSAGE value="Basecode v0.1.2402" />
+    <MESSAGE value="Basecode v0.1.2602" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.1.2602" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1708775833639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1708904125102" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

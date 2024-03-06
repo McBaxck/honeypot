@@ -21,7 +21,7 @@ from src.host import nslookup_with_geolocation
 from src.protocol.web.server import launch_web_server
 
 
-class HoneyPot:
+class HolyPot:
     def __init__(self, holypot_config: HolyPotConfig) -> None:
         """HoneyPot Device Simulation"""
         self._name: str = holypot_config.name
@@ -35,6 +35,7 @@ class HoneyPot:
         self._db: HoneyPotHandler = HoneyPotHandler()
         self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
         self._protocol_detector: ProtocolDetector = ProtocolDetector()
+        self.config: HolyPotConfig = holypot_config
 
     @property
     def name(self) -> str:
@@ -82,17 +83,17 @@ class HoneyPot:
                         print("SSL handshake")
                 print("Current History -> ", self._history.show())
 
-    def add_interactive_shell(self, on_ports: list[int], mode: str) -> None:
+    def add_service(self, on_ports: list[int], service: str) -> None:
         for port in on_ports:
             if 65535 >= port > 0:
                 if port in self._ports:
                     self._ports.remove(port)
-                if mode == 'ssh':
+                if service == 'ssh':
                     ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
                     threading.Thread(target=ssh_server.start_server, args=(self._host, port), daemon=True).start()
-                if mode == 'telnet':
+                if service == 'telnet':
                     pass
-                if mode == 'http':
+                if service == 'http':
                     web_server_thread: threading.Thread = threading.Thread(target=launch_web_server, args=(port,),
                                                                            daemon=True)
                     web_server_thread.start()
@@ -156,4 +157,5 @@ class HoneyPot:
         self.fd_to_socket.clear()
         print("Quitting...")
         time.sleep(2.0)
-        quit(os.EX_OK)
+        return
+
