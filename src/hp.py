@@ -15,10 +15,13 @@ from src.network.connection import (create_tcp_socket,
                                     handle_udp_connection)
 from src.cache.history import History
 from src.db.supabase import HoneyPotHandler
-from src.protocol.detector.detector import ProtocolDetector
-from src.protocol.ssh import FakeSSHServer
+from src.protocol.detector.detector import detect_protocol
+from src.protocol.ssh.ssh import FakeSSHServer
 from src.host import nslookup_with_geolocation
+from src.protocol.telnet.telnet import FakeTelnetServer
 from src.protocol.web.server import launch_web_server
+from src.protocol.ftp.ftp import FakeFTPServer
+from src.protocol.smtp.smtp import start_smtp_server
 
 
 class HolyPot:
@@ -34,7 +37,6 @@ class HolyPot:
         self._history: History = History(buffer_size=4096)
         self._db: HoneyPotHandler = HoneyPotHandler()
         self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
-        self._protocol_detector: ProtocolDetector = ProtocolDetector()
         self.config: HolyPotConfig = holypot_config
 
     @property
@@ -90,13 +92,22 @@ class HolyPot:
                     self._ports.remove(port)
                 if service == 'ssh':
                     ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
-                    threading.Thread(target=ssh_server.start_server, args=(self._host, port), daemon=True).start()
+                    threading.Thread(target=ssh_server.start_server, args=(self._host, port)).start()
                 if service == 'telnet':
-                    pass
+                    telnet_server: FakeTelnetServer = FakeTelnetServer(host=self._host, port=port)
+                    telnet_server_thread = threading.Thread(target=telnet_server.start)
+                    telnet_server_thread.start()
                 if service == 'http':
-                    web_server_thread: threading.Thread = threading.Thread(target=launch_web_server, args=(port,),
-                                                                           daemon=True)
+                    web_server_thread: threading.Thread = threading.Thread(target=launch_web_server,
+                                                                           args=(DEFAULT_URL_WEBPAGE, port))
                     web_server_thread.start()
+                if service == 'ftp':
+                    ftp_server: FakeFTPServer = FakeFTPServer(port=port)
+                    ftp_server_thread: threading.Thread = threading.Thread(target=ftp_server.start_server)
+                    ftp_server_thread.start()
+                if service == 'smtp':
+                    smtp_server_thread: threading.Thread = threading.Thread(target=start_smtp_server)
+                    smtp_server_thread.start()
 
     def _tcp(self, sock: socket.socket) -> None:
         host, data, client, peer = handle_tcp_connection(sock)
@@ -135,7 +146,7 @@ class HolyPot:
             'data': data,
             'dest_port': dest_port,
             'dest_ip': dest_ip,
-            'protocol': self._protocol_detector.auto_detect(source_port, data.encode()),
+            'protocol': detect_protocol(data),
             'country': country
         }
         self._db.add_log(log)

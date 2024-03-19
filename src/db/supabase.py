@@ -61,3 +61,14 @@ class SSHServerCommandHandler(SupabaseHandler):
 
     def add_log(self, log: dict) -> APIResponse:
         return self.insert(table='ssh_logs', data=log)
+
+
+class HTTPServerDB(SupabaseHandler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def fetch_all_logs(self) -> APIResponse:
+        return self.fetch_all(table='http_logs')
+
+    def add_log(self, log: dict) -> APIResponse:
+        return self.insert(table='http_logs', data=log)

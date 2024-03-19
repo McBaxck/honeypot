@@ -4,6 +4,7 @@ import time
 import paramiko
 import threading
 import socket
+import logging
 
 from src.db.supabase import SSHServerCommandHandler
 from src.host.devices.linux.registry import Ubuntu
@@ -14,6 +15,9 @@ DEFAULT_CWD: str = os.getcwd()
 
 DEFAULT_USER: str = 'sshuser'
 DEFAULT_PWD: str = 'password'
+
+
+ssh_logger = logging.getLogger('SSH')
 
 
 class Server(paramiko.ServerInterface):
@@ -45,6 +49,7 @@ class FakeSSHServer:
         self.device: Ubuntu = Ubuntu()
         self.cmd_history: list[str] = []
         self._db: SSHServerCommandHandler = SSHServerCommandHandler()
+        ssh_logger.info("Initializing SSH...")
 
     def handle_client(self, client):
         try:
@@ -54,6 +59,7 @@ class FakeSSHServer:
             server = Server()  # Assurez-vous que Server est correctement défini
             transport.start_server(server=server)
             channel = transport.accept(20)
+            ssh_logger.info("Channel accepted from {}".format(client))
 
             # Detect if channel is already close
             if channel is None:
@@ -86,6 +92,8 @@ class FakeSSHServer:
                                 'dest_port': 0,
                                 'command': client_buffer
                             }
+                            ssh_logger.info("Received command: \n" + log)
+
                             self._db.add_log(log)
                             client_buffer = ""
                         if not data:
