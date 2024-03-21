@@ -1,24 +1,26 @@
 import smtplib
-from email.mime.text import MIMEText
 
-def send_email(smtp_server, port, sender, recipient, subject, body):
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = recipient
+# Définissez l'adresse IP du serveur SMTP et le port
+smtp_server_ip = "127.0.0.1"
+smtp_port = 9924
 
-    with smtplib.SMTP(smtp_server, port) as server:
-        server.sendmail(sender, [recipient], msg.as_string())
-        print("E-mail envoyé avec succès.")
+# Créez une connexion SMTP
+server = smtplib.SMTP(smtp_server_ip, smtp_port)
 
-# Paramètres du serveur SMTP
-smtp_server = '127.0.0.1'  # Remplacez par l'adresse IP de votre serveur SMTP
-port = 1025  # Le port utilisé par votre serveur SMTP
+# Spécifiez l'expéditeur et le destinataire
+from_addr = "expediteur@example.com"
+to_addr = "destinataire@example.com"
 
-# Détails de l'e-mail
-sender = 'exemple@domaine.com'
-recipient = 'destinataire@domaine.com'
-subject = 'Test du Serveur SMTP'
-body = 'Ceci est un message de test envoyé depuis le serveur SMTP.'
+# Créez votre message
+msg = """\
+Subject: Test SMTP
+From: {}
+To: {}
 
-send_email(smtp_server, port, sender, recipient, subject, body)
+Ceci est un test d'envoi SMTP.""".format(from_addr, to_addr)
+
+# Envoyez l'email
+server.sendmail(from_addr, to_addr, msg)
+
+# Fermez la connexion
+server.quit()

@@ -1,0 +1,10 @@
+2024-03-20 12:59:10,635 - SMTP - INFO - Le serveur SMTP est en cours d'exécution sur le port 9924. Utilisez Ctrl+C pour arrêter.
+2024-03-20 13:03:56,575 - SMTP - INFO - Le serveur SMTP est en cours d'exécution sur le port 9924. Utilisez Ctrl+C pour arrêter.
+2024-03-20 13:04:21,058 - SMTP - INFO - Message: Subject: Test SMTP
+From: expediteur@example.com
+To: destinataire@example.com
+
+Ceci est un test d'envoi SMTP.
+
+2024-03-20 18:17:22,410 - SMTP - INFO - Le serveur SMTP est en cours d'exécution sur le port 9924. Utilisez Ctrl+C pour arrêter.
+2024-03-20 18:19:41,995 - SMTP - INFO - Le serveur SMTP est en cours d'exécution sur le port 9924. Utilisez Ctrl+C pour arrêter.

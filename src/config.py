@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 from src.network.utils import get_public_ip, get_private_ip_and_iface, get_network_ip_with_cidr, get_gateway_ip, \
-    scan_network
+    scan_network, scan
 
 # CONSTANTS DECLARATION AREA
 ONLY_TCP: int = 44
@@ -75,43 +75,45 @@ class HostConfig:
         self._init_settings()
 
     def _init_settings(self) -> None:
-        try:
-            print("[+] Fetching your public ipv4 address (from WAN)")
-            time.sleep(.7)
-            self._host_pub_ip = get_public_ip()
-        except Exception as pub_ip_err:
-            print("Setting_Err> {}".format(pub_ip_err))
-        try:
-            print("[+] Getting your host private ipv4 address")
-            time.sleep(.7)
-            self._host_private_ip = get_private_ip_and_iface()[0]
-        except Exception as priv_ip_err:
-            print("Setting_Err> {}".format(priv_ip_err))
-        try:
-            print("[+] Finding the current network ipv4")
-            time.sleep(.7)
-            self._network_ip = get_network_ip_with_cidr()
-        except Exception as net_ip_err:
-            print("Setting_Err> {}".format(net_ip_err))
-        try:
-            print("[+] Finding the default gateway (network)")
-            time.sleep(.7)
-            self._network_gtw_ip = get_gateway_ip()
-        except Exception as gwg_ip_err:
-            print("Setting_Err> {}".format(gwg_ip_err))
-        try:
-            print("[+] Finding the current interface (host)")
-            time.sleep(.7)
-            self._host_current_iface = get_private_ip_and_iface()[1]
-        except Exception as iface_err:
-            print("Setting_Err> {}".format(iface_err))
-        try:
-            import threading
-            print("[+] Scanning your environment...")
-            net_scan_thread: threading.Thread = threading.Thread(target=self._scan_network, args=(self.network_ip,))
-            net_scan_thread.start()
-        except Exception as device_err:
-            print("Setting_Err> {}".format(device_err))
+        # try:
+        #     print("[+] Fetching your public ipv4 address (from WAN)")
+        #     time.sleep(.7)
+        #     self._host_pub_ip = get_public_ip()
+        # except Exception as pub_ip_err:
+        #     print("Setting_Err> {}".format(pub_ip_err))
+        # try:
+        #     print("[+] Getting your host private ipv4 address")
+        #     time.sleep(.7)
+        #     self._host_private_ip = get_private_ip_and_iface()[0]
+        # except Exception as priv_ip_err:
+        #     print("Setting_Err> {}".format(priv_ip_err))
+        # try:
+        #     print("[+] Finding the current network ipv4")
+        #     time.sleep(.7)
+        #     self._network_ip = get_network_ip_with_cidr()
+        # except Exception as net_ip_err:
+        #     print("Setting_Err> {}".format(net_ip_err))
+        # try:
+        #     print("[+] Finding the default gateway (network)")
+        #     time.sleep(.7)
+        #     self._network_gtw_ip = get_gateway_ip()
+        # except Exception as gwg_ip_err:
+        #     print("Setting_Err> {}".format(gwg_ip_err))
+        # try:
+        #     print("[+] Finding the current interface (host)")
+        #     time.sleep(.7)
+        #     self._host_current_iface = get_private_ip_and_iface()[1]
+        # except Exception as iface_err:
+        #     print("Setting_Err> {}".format(iface_err))
+        # try:
+        #     import threading
+        #     print("[+] Scanning your environment...")
+        #     net_scan_thread: threading.Thread = threading.Thread(target=self._scan_network,
+        #                                                          args=(self.network_ip,))
+        #     net_scan_thread.start()
+        # except Exception as device_err:
+        #     print("Setting_Err> {}".format(device_err))
+        pass
 
     @property
     def host_pub_ip(self) -> str:
@@ -138,7 +140,7 @@ class HostConfig:
         return self._devices
 
     def _scan_network(self, network) -> None:
-        self._devices = scan_network(network)
+        self._devices = scan(network)
 
 
 GLOBAL_LOGGING_CONFIG: dict = {
@@ -162,6 +164,10 @@ GLOBAL_LOGGING_CONFIG: dict = {
         },
         'TELNET': {
             'handlers': ['telnet_handler'],
+            'level': 'INFO'
+        },
+        'GLOBAL_SET': {
+            'handlers': ['global_set_handler'],
             'level': 'INFO'
         }
     },
@@ -190,6 +196,11 @@ GLOBAL_LOGGING_CONFIG: dict = {
             'class': 'logging.FileHandler',
             'formatter': 'simple',
             'filename': 'src/protocol/telnet/logs/telnet_server.log'
+        },
+        'global_set_handler': {
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': 'src/global/logs/global.log'
         }
     },
     'formatters': {

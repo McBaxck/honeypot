@@ -21,23 +21,35 @@ from src.host import nslookup_with_geolocation
 from src.protocol.telnet.telnet import FakeTelnetServer
 from src.protocol.web.server import launch_web_server
 from src.protocol.ftp.ftp import FakeFTPServer
-from src.protocol.smtp.smtp import start_smtp_server
+from src.protocol.smtp.smtp import start_smtp
+
+global_logger = logging.getLogger('GLOBAL_SET')
 
 
 class HolyPot:
     def __init__(self, holypot_config: HolyPotConfig) -> None:
         """HoneyPot Device Simulation"""
+        global_logger.info('Booting the current honeypot instance...')
         self._name: str = holypot_config.name
+        global_logger.info('Set $NAME -> %s', self._name)
         self._host: str = '0.0.0.0' if holypot_config.host == HOST.PUBLIC else 'localhost'
+        global_logger.info('Set $HOSTNAME -> %s', self._host)
         self._ports: Union[list[int], str] = holypot_config.ports if holypot_config.ports != 'all' else ALL_PORTS
+        global_logger.info('Set $PORTS -> %s' % self._ports)
         self._mode: int = holypot_config.mode
+        global_logger.info('Set $MODE -> %s', self._mode)
         self._nodes_cluster: list[str] = holypot_config.nodes_cluster
+        global_logger.info('Set $CLUSTER_NODES -> %s', self._nodes_cluster)
         self.poller: select.poll = select.poll()
         self.fd_to_socket: dict = {}
         self._history: History = History(buffer_size=4096)
+        global_logger.info('Init an empty history buffer (BUF_SIZE=4096)...')
         self._db: HoneyPotHandler = HoneyPotHandler()
         self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
         self.config: HolyPotConfig = holypot_config
+        global_logger.info('Importing default configurations...')
+        self._active_threads: list[threading.Thread] = []
+        global_logger.info('Initializing threads stack...')
 
     @property
     def name(self) -> str:
@@ -77,13 +89,15 @@ class HolyPot:
                 if event & select.POLLIN:
                     # TCP ---------------------------------
                     if sock.type == socket.SOCK_STREAM:
+                        global_logger.info('Received a connection from: %s', sock.fileno())
                         self._tcp(sock)
                     # UDP ---------------------------------
                     if sock.type == socket.SOCK_DGRAM:
+                        global_logger.info('Received a message from %s', sock.fileno())
                         self._udp(sock)
                     if sock.type == ssl.SSLSocket:
-                        print("SSL handshake")
-                print("Current History -> ", self._history.show())
+                        global_logger.info("SSL handshake")
+                global_logger.info("Current History -> ", self._history.show())
 
     def add_service(self, on_ports: list[int], service: str) -> None:
         for port in on_ports:
@@ -91,33 +105,46 @@ class HolyPot:
                 if port in self._ports:
                     self._ports.remove(port)
                 if service == 'ssh':
+                    global_logger.info('Adding service <SSH> to port: %s' % port)
                     ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
-                    threading.Thread(target=ssh_server.start_server, args=(self._host, port)).start()
+                    ssh_server_thread = threading.Thread(target=ssh_server.start_server, args=(self._host, port))
+                    ssh_server_thread.start()
+                    self._active_threads.append(ssh_server_thread)
                 if service == 'telnet':
+                    global_logger.info('Adding service <Telnet> to port: %s' % port)
                     telnet_server: FakeTelnetServer = FakeTelnetServer(host=self._host, port=port)
                     telnet_server_thread = threading.Thread(target=telnet_server.start)
                     telnet_server_thread.start()
                 if service == 'http':
+                    global_logger.info('Adding service <HTTP> to port: %s' % port)
                     web_server_thread: threading.Thread = threading.Thread(target=launch_web_server,
                                                                            args=(DEFAULT_URL_WEBPAGE, port))
                     web_server_thread.start()
+                    self._active_threads.append(web_server_thread)
                 if service == 'ftp':
+                    global_logger.info('Adding service <FTP> to port: %s' % port)
                     ftp_server: FakeFTPServer = FakeFTPServer(port=port)
                     ftp_server_thread: threading.Thread = threading.Thread(target=ftp_server.start_server)
                     ftp_server_thread.start()
+                    self._active_threads.append(ftp_server_thread)
                 if service == 'smtp':
-                    smtp_server_thread: threading.Thread = threading.Thread(target=start_smtp_server)
+                    global_logger.info('Adding service <SMTP> to port: %s' % port)
+                    smtp_server_thread: threading.Thread = threading.Thread(target=start_smtp,
+                                                                            args=(port,))
                     smtp_server_thread.start()
+                    self._active_threads.append(smtp_server_thread)
 
     def _tcp(self, sock: socket.socket) -> None:
         host, data, client, peer = handle_tcp_connection(sock)
         client_ip, client_port = sock.getsockname()
         try:
+            global_logger.info('Registering TCP connection <%s:%d>' % (host, client_port))
             self.register_in_database('tcp', str(client_ip), client_port, data.decode(),
                                       peer[1], self._host)
         except ConnectionRefusedError:
-            print("Connection refused, pass...")
+            global_logger.info("Connection refused, pass...")
         except UnicodeDecodeError:
+            global_logger.info("Error_Retry>>> registering TCP connection <%s:%d>" % (host, client_port))
             self.register_in_database('tcp', str(client_ip), client_port, str(data),
                                       peer[1], self._host)
         self._history.store(host.ip4[0])
@@ -154,6 +181,7 @@ class HolyPot:
     def run(self) -> None:
         """"""
         self._init_poller()
+        global_logger.info("Current [active] threads up: " + str(self._active_threads))
         print("[•] Welcome to the HolyPot Interface!")
         try:
             print("[---] HolyPot is waiting for connections...")
@@ -166,7 +194,6 @@ class HolyPot:
 
     def shutdown(self) -> None:
         self.fd_to_socket.clear()
-        print("Quitting...")
+        global_logger.info("Quitting...")
         time.sleep(2.0)
         return
-

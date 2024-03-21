@@ -4,31 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.2.0603">
-      <change afterPath="$PROJECT_DIR$/src/protocol/ftp/ftp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/smtp/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/smtp/client_smtp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/smtp/logs/smtp_server.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/smtp/smtp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/ssh/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/telnet/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/telnet/telnet.py" afterDir="false" />
+    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.2.1903">
+      <change afterPath="$PROJECT_DIR$/src/global/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/global/logs/global.log" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/protocol/web/cache/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/web/page_mirroring.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/protocol/wifi/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyvenv.cfg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/supabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/supabase.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/hp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/detector/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/detector/detector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/ftp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ftp/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/ssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh/ssh.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/telnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ftp/logs/ftp_server.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/web/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/protocol/web/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/web/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/network/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/network/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/ftp/logs/ftp_server.log" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ftp/logs/ftp_server.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/smtp/client_smtp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/smtp/client_smtp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/smtp/logs/smtp_server.log" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/smtp/logs/smtp_server.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/smtp/smtp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/smtp/smtp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/ssh/logs/ssh_server.log" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh/logs/ssh_server.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/ssh/ssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/ssh/ssh.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/protocol/web/logs/web_server.log" beforeDir="false" afterPath="$PROJECT_DIR$/src/protocol/web/logs/web_server.log" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -169,7 +160,7 @@
       <workItem from="1710421354998" duration="9517000" />
       <workItem from="1710586034339" duration="6120000" />
       <workItem from="1710696574543" duration="5677000" />
-      <workItem from="1710746058691" duration="13073000" />
+      <workItem from="1710746058691" duration="31498000" />
     </task>
     <task id="LOCAL-00001" summary="Basecode v0.1.0102">
       <option name="closed" value="true" />
@@ -227,7 +218,15 @@
       <option name="project" value="LOCAL" />
       <updated>1709765384459</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Basecode v0.2.1903">
+      <option name="closed" value="true" />
+      <created>1710862466788</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1710862466788</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -252,7 +251,8 @@
     <MESSAGE value="Basecode v0.1.2402" />
     <MESSAGE value="Basecode v0.1.2602" />
     <MESSAGE value="Basecode v0.2.0603" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.2.0603" />
+    <MESSAGE value="Basecode v0.2.1903" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.2.1903" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1708904125102" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

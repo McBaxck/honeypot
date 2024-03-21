@@ -4,18 +4,31 @@ import logging
 import threading
 import time
 import os
+from dataclasses import dataclass
+
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from src.db.supabase import HoneyPotHandler, HTTPServerDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
+from src.network.utils import scan, get_active_interface_details, get_network_ip_with_cidr
+import warnings
+
+# Ignorer tous les avertissements
+warnings.filterwarnings("ignore")
 
 BASE_ROUTE: str = "/holypot-api/v1"
 
 app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": ["*"]}})
 
-logging.config.dictConfig(GLOBAL_LOGGING_CONFIG)
+global_logger = logging.getLogger('GLOBAL_SET')
+
+
+@dataclass
+class WaitingService:
+    service: str
+    on_ports: list[int]
 
 
 def list_content_folder(path):
@@ -34,13 +47,18 @@ class HolyPotApp:
     def __init__(self, hp_set):
         self.hp_set = hp_set
         self.holypot = None
-        self.host_set: HostConfig = HostConfig()
+        # self.host_set: HostConfig = HostConfig()
         self.is_running: bool = False
+        self._waiting_services: list[WaitingService] = []
 
     def run(self):
         time.sleep(5)
         if not self.is_running:
             self.holypot = HolyPot(self.hp_set)
+            for waiting_service in self._waiting_services:
+                print("Adding waiting service", waiting_service.service)
+                print("Adding waiting ports", waiting_service.on_ports)
+                self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
             thread = threading.Thread(target=self.holypot.run)
             thread.start()
             self.is_running = True
@@ -53,16 +71,17 @@ class HolyPotApp:
             self.holypot.shutdown()
         return jsonify({"message": "OK"})
 
-    def devices(self):
-        return jsonify({"devices": self.host_set.devices})
-
     def get_config(self):
         return jsonify(self.hp_set.__dict__)
 
     def add_service(self):
         data = request.json
-        self.holypot.add_service(data['on_ports'], data['service'])
-        return jsonify({data['service']: "OK"})
+        payload: WaitingService = WaitingService(service=data['service'], on_ports=data['on_ports'])
+        if payload not in self._waiting_services:
+            self._waiting_services.append(payload)
+            return jsonify({data['service']: "OK"})
+        else:
+            return jsonify({data['service']: "Ports already saved as use!"})
 
     def set_config(self):
         data = request.json
@@ -73,10 +92,15 @@ class HolyPotApp:
         self.hp_set.mode = data['mode']
         return jsonify({"message": "OK"})
 
-    def get_service_logs(self):
+    @staticmethod
+    def get_service_logs():
         data = request.json
         service: str = data["service"]
-        return jsonify(list_content_folder("src/protocol/{service}/logs/".format(service=service)))
+        return jsonify([list_content_folder("src/protocol/{service}/logs/".format(service=service))])
+
+    @staticmethod
+    def get_network_devices():
+        return jsonify(scan(get_network_ip_with_cidr()))
 
     @staticmethod
     def get_logs():
@@ -108,7 +132,7 @@ def run():
     return holy_pot_app.run()
 
 
-@app.route(f'{BASE_ROUTE}/service/logs', methods=['GET'])
+@app.route(f'{BASE_ROUTE}/service/logs', methods=['GET', 'POST'])
 def get_srv_logs():
     return holy_pot_app.get_service_logs()
 
@@ -116,11 +140,6 @@ def get_srv_logs():
 @app.route(f'{BASE_ROUTE}/shutdown', methods=['GET'])
 def shutdown():
     return holy_pot_app.shutdown()
-
-
-@app.route(f'{BASE_ROUTE}/devices', methods=['GET'])
-def devices():
-    return holy_pot_app.devices()
 
 
 @app.route(f'{BASE_ROUTE}/config', methods=['GET'])
@@ -151,6 +170,11 @@ def get_ssh_logs():
 @app.route(f'{BASE_ROUTE}/logs/http', methods=['GET'])
 def get_http_logs():
     return holy_pot_app.get_http_logs()
+
+
+@app.route(f'{BASE_ROUTE}/network/scan', methods=['GET'])
+def get_net_scan_devices():
+    return holy_pot_app.get_network_devices()
 
 
 if __name__ == '__main__':

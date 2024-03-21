@@ -1,39 +1,33 @@
 import asyncio
-import time
-import logging
+
 from aiosmtpd.controller import Controller
+from aiosmtpd.handlers import Message
+from email.message import EmailMessage
+import logging
 
 smtp_logger = logging.getLogger('SMTP')
 
 
-class FakeSMTPServer:
+class CustomHandler:
     async def handle_DATA(self, server, session, envelope):
-        peer = session.peer
-        mailfrom = envelope.mail_from
-        rcpttos = envelope.rcpt_tos
-        data = envelope.content.decode('utf8', errors='replace')
-
-        # Afficher et enregistrer le message dans la console et dans le fichier de log
-        message = f'Received message from {peer}\nFrom: {mailfrom}\nTo: {rcpttos}\nMessage:\n{data}'
-        smtp_logger.info(message)
-        # Enregistrer le message dans un fichier
-        # with open('received_emails.txt', 'a') as file:
-        #     file.write(f'From: {mailfrom}, To: {rcpttos}, Message: {data}\n')
-
+        mail_from = envelope.mail_from
+        rcpt_tos = envelope.rcpt_tos
+        data = envelope.content  # Données brutes du message
+        # print(f"From: {mail_from}")
+        # print(f"To: {rcpt_tos}")
+        smtp_logger.info(f"Message: {data.decode('utf8', errors='replace')}")
         return '250 Message accepted for delivery'
 
 
-async def start_smtp_server(port=25):
-    handler = FakeSMTPServer()
-    controller = Controller(handler, hostname='127.0.0.1', port=port)
-
-    # Lancer le serveur de manière asynchrone
+def start_smtp(port):
+    # Créer une nouvelle boucle d'événements pour le thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    controller = Controller(CustomHandler(), hostname='localhost', port=port)
     controller.start()
+    smtp_logger.info(f"Le serveur SMTP est en cours d'exécution sur le port {port}. Utilisez Ctrl+C pour arrêter.")
     try:
-        print("SMTP Server started...")
-        await asyncio.Future()  # Boucle infinie jusqu'à une interruption
-    except (Exception, KeyboardInterrupt):
-        print("SMTP Server is stopping...")
-        time.sleep(2)
+        loop.run_forever()
     finally:
         controller.stop()
+        loop.close()

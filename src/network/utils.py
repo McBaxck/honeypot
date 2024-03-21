@@ -1,8 +1,16 @@
 import socket
+import uuid
+
 import requests
 import netifaces
 from scapy.all import srp
 from scapy.layers.l2 import ARP, Ether
+import logging
+
+logging.getLogger("scapy.runtime").setLevel(logging.INFO)
+logging.getLogger("scapy.loading").setLevel(logging.INFO)
+logging.getLogger("scapy.interactive").setLevel(logging.INFO)
+logging.getLogger("scapy.automaton").setLevel(logging.INFO)
 
 
 def get_public_ip():
@@ -97,3 +105,67 @@ def get_network_ip_with_cidr():
         return f"{network_ip}/{cidr}"
     else:
         return "No active network interface found."
+
+
+import netifaces as ni
+
+
+def get_default_gateway():
+    return ni.gateways()['default'][ni.AF_INET][0]
+
+
+def get_own_ip():
+    return socket.gethostbyname(socket.gethostname())
+
+
+def get_own_mac_addr():
+    # Obtention de l'adresse MAC en tant qu'entier 48 bits
+    mac = uuid.getnode()
+
+    # Conversion de l'adresse MAC en une chaîne de caractères formatée
+    mac_address = ':'.join(f'{mac:012x}'[i:i + 2] for i in range(0, 12, 2))
+    return mac_address
+
+
+def get_mac_address(ip_address):
+    arp_request = ARP(pdst=ip_address)
+    broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+    arp_request_broadcast = broadcast / arp_request
+    answered = srp(arp_request_broadcast, timeout=1, verbose=False, iface_hint=ip_address)[0]
+    if answered:
+        return answered[0][1].hwsrc
+    else:
+        return "??"
+
+
+def scan(ip_range):
+    arp_request = ARP(pdst=ip_range)
+    broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+    arp_request_broadcast = broadcast / arp_request
+    answered_list = srp(arp_request_broadcast, timeout=1, verbose=False)[0]
+
+    clients_list = []
+
+    for element in answered_list:
+        client_dict = {
+            "ip": element[1].psrc,
+            "mac": element[1].hwsrc,
+            # Les résolutions de hostname et fabricant doivent être implémentées ici.
+        }
+        clients_list.append(client_dict)
+    all_ips: list[str] = [list(el.values())[0] for el in clients_list]
+    gtw: str = get_gateway_ip()
+    my_ip: str = get_own_ip()
+    if gtw not in all_ips:
+        clients_list.append({"ip": gtw, "mac": get_mac_address(gtw)})
+    if my_ip not in all_ips:
+        clients_list.append({"ip": my_ip, "mac": get_own_mac_addr()})
+    print("All iPV4 addresses: ", all_ips)
+    return clients_list
+
+
+if __name__ == "__main__":
+    # Utilisation de la fonction pour scanner le réseau, par exemple 192.168.1.1/24 pour un réseau local typique.
+    devices = scan(get_network_ip_with_cidr())
+    for device in devices:
+        print(device)

@@ -92,7 +92,7 @@ class FakeSSHServer:
                                 'dest_port': 0,
                                 'command': client_buffer
                             }
-                            ssh_logger.info("Received command: \n" + log)
+                            ssh_logger.info("Received command: \n" + str(log))
 
                             self._db.add_log(log)
                             client_buffer = ""
