@@ -4,10 +4,11 @@ import logging
 import threading
 import time
 import os
+import uuid
 from dataclasses import dataclass
 
 from flask_cors import CORS
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 from src.db.supabase import HoneyPotHandler, HTTPServerDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
@@ -66,6 +67,9 @@ class HolyPotApp:
         else:
             return jsonify({"message": "Already running..."})
 
+    def status(self):
+        return jsonify({"status": "OK"})
+
     def shutdown(self):
         if self.holypot:
             self.holypot.shutdown()
@@ -97,6 +101,24 @@ class HolyPotApp:
         data = request.json
         service: str = data["service"]
         return jsonify([list_content_folder("src/protocol/{service}/logs/".format(service=service))])
+
+    def signin(self):
+        hp_id = uuid.uuid4().hex
+        data = request.json
+        honeypot_data: dict = {
+            "user": data["username"],
+            "password": data["password"],
+            "honeypot_id": hp_id,
+            "email": f"{data['username']}@holypot-domain.fr",
+            "name": "my-default-honeypot"
+
+        }
+        db_handler: HoneyPotHandler = HoneyPotHandler()
+        try:
+            db_handler.insert(table='honeypots_registry', data=honeypot_data)
+            return jsonify({"name": "my-default-honeypot"})
+        except Exception as e:
+            abort(400, description="Détail de l'erreur : votre requête contient des données invalides.")
 
     @staticmethod
     def get_network_devices():
@@ -130,6 +152,12 @@ holy_pot_app = HolyPotApp(hp_set)
 @app.route(f'{BASE_ROUTE}/run', methods=['GET'])
 def run():
     return holy_pot_app.run()
+
+
+@app.route(f'{BASE_ROUTE}/status', methods=['GET'])
+def status():
+    time.sleep(3)
+    return holy_pot_app.status()
 
 
 @app.route(f'{BASE_ROUTE}/service/logs', methods=['GET', 'POST'])
@@ -175,6 +203,11 @@ def get_http_logs():
 @app.route(f'{BASE_ROUTE}/network/scan', methods=['GET'])
 def get_net_scan_devices():
     return holy_pot_app.get_network_devices()
+
+
+@app.route(f'{BASE_ROUTE}/signin', methods=['POST'])
+def hp_signin():
+    return holy_pot_app.signin()
 
 
 if __name__ == '__main__':
