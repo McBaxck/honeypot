@@ -1,6 +1,7 @@
 import datetime
 import logging.config
 import logging
+import random
 import threading
 import time
 import os
@@ -8,11 +9,12 @@ import uuid
 from dataclasses import dataclass
 
 from flask_cors import CORS
-from flask import Flask, request, jsonify, abort
-from src.db.supabase import HoneyPotHandler, HTTPServerDB
+from flask import Flask, request, jsonify, abort, Response
+from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
-from src.network.utils import scan, get_active_interface_details, get_network_ip_with_cidr
+from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
+    check_password, get_own_ip, get_public_ip, get_own_mac_addr, get_os_version
 import warnings
 
 # Ignorer tous les avertissements
@@ -102,23 +104,42 @@ class HolyPotApp:
         service: str = data["service"]
         return jsonify([list_content_folder("src/protocol/{service}/logs/".format(service=service))])
 
-    def signin(self):
+    @staticmethod
+    def register():
         hp_id = uuid.uuid4().hex
-        data = request.json
+        data: dict = request.json
         honeypot_data: dict = {
             "user": data["username"],
-            "password": data["password"],
+            "password": hash_password(data["password"]).decode(),
             "honeypot_id": hp_id,
-            "email": f"{data['username']}@holypot-domain.fr",
-            "name": "my-default-honeypot"
+            "email": data["email"] if data.get("email") else f"{data['username']}@holypot-domain.fr",
+            "name": data["name"] if data.get("name") else f"honeypot{random.randint(1, 100000)}"
 
         }
         db_handler: HoneyPotHandler = HoneyPotHandler()
+        account_handler: AccountDB = AccountDB()
+        print("DATABASE RESULT => ", account_handler.get_hp_name(username=data["username"]).data)
         try:
             db_handler.insert(table='honeypots_registry', data=honeypot_data)
-            return jsonify({"name": "my-default-honeypot"})
+            return jsonify({"name": honeypot_data.get("name")})
         except Exception as e:
-            abort(400, description="Détail de l'erreur : votre requête contient des données invalides.")
+            print("error_request (signin) -> ", e)
+            return Response("Bad Request", status=400)
+
+    @staticmethod
+    def signin():
+        data: dict = request.json
+        db_handler: AccountDB = AccountDB()
+        try:
+            if db_handler.verify_user_credentials(username=data["username"], password=data["password"]):
+                return jsonify(
+                    db_handler.get_hp_name(username=data["username"]).data[0]
+                )
+            else:
+                return Response("Bad Request", status=400)
+        except Exception as e:
+            print("error_request (signin) -> ", e)
+            return Response("Bad Request", status=400)
 
     @staticmethod
     def get_network_devices():
@@ -203,6 +224,22 @@ def get_http_logs():
 @app.route(f'{BASE_ROUTE}/network/scan', methods=['GET'])
 def get_net_scan_devices():
     return holy_pot_app.get_network_devices()
+
+
+@app.route(f'{BASE_ROUTE}/host', methods=['GET'])
+def get_host_infos():
+    return jsonify({
+        "lo": get_own_ip(),
+        "pub": get_public_ip(),
+        "mac": get_own_mac_addr(),
+        "os": get_os_version(),
+        "memory": get_memory_info()
+    })
+
+
+@app.route(f'{BASE_ROUTE}/register', methods=['POST'])
+def hp_register():
+    return holy_pot_app.register()
 
 
 @app.route(f'{BASE_ROUTE}/signin', methods=['POST'])

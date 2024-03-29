@@ -1,6 +1,7 @@
+import random
 import socket
 import uuid
-
+import bcrypt
 import requests
 import netifaces
 from scapy.all import srp
@@ -14,9 +15,14 @@ logging.getLogger("scapy.automaton").setLevel(logging.INFO)
 
 
 def get_public_ip():
-    response = requests.get('https://api.ipify.org?format=json')
-    ip = response.json()['ip']
-    return ip
+    import time
+    time.sleep(random.randint(1, 5))
+    try:
+        response = requests.get('https://api.ipify.org?format=json')
+        ip = response.json()['ip']
+        return ip
+    except Exception as e:
+        return '???'
 
 
 def get_private_ip_and_iface():
@@ -115,7 +121,10 @@ def get_default_gateway():
 
 
 def get_own_ip():
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except Exception as e:
+        return '127.0.0.1'
 
 
 def get_own_mac_addr():
@@ -136,6 +145,30 @@ def get_mac_address(ip_address):
         return answered[0][1].hwsrc
     else:
         return "??"
+
+
+def get_os_version():
+    import platform
+    os_name = platform.system()  # Obtient le nom du système d'exploitation (ex. Linux, Windows, Darwin)
+    os_version = platform.version()  # Obtient la version spécifique du système d'exploitation
+    return os_version
+
+
+def get_memory_info():
+    import psutil
+    # Mémoire RAM
+    ram_info = psutil.virtual_memory()
+    total_ram = ram_info.total / (1024 ** 3)  # Convertir en Gigaoctets (Go)
+    available_ram = ram_info.available / (1024 ** 3)  # Convertir en Go
+    used_ram = ram_info.used / (1024 ** 3)  # Convertir en Go
+
+    # Espace de stockage (Pour le disque où le script est exécuté)
+    disk_info = psutil.disk_usage('/')
+    total_disk = disk_info.total / (1024 ** 3)  # Convertir en Go
+    used_disk = disk_info.used / (1024 ** 3)  # Convertir en Go
+    free_disk = disk_info.free / (1024 ** 3)  # Convertir en Go
+
+    return f"{int(total_ram)}Go RAM, {int(total_disk)}Go SSD"
 
 
 def scan(ip_range):
@@ -162,6 +195,22 @@ def scan(ip_range):
         clients_list.append({"ip": my_ip, "mac": get_own_mac_addr()})
     print("All iPV4 addresses: ", all_ips)
     return clients_list
+
+
+# Fonction pour hacher un mot de passe
+def hash_password(password):
+    # Convertir le mot de passe en bytes, générer un sel et hacher le mot de passe
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+    return hashed_password
+
+
+# Fonction pour vérifier un mot de passe contre un hachage
+def check_password(hashed_password, user_password):
+    # Convertir le mot de passe utilisateur en bytes et vérifier
+    user_password_bytes = user_password.encode('utf-8')
+    return bcrypt.checkpw(user_password_bytes, hashed_password)
 
 
 if __name__ == "__main__":

@@ -197,3 +197,10 @@ class HolyPot:
         global_logger.info("Quitting...")
         time.sleep(2.0)
         return
+
+    def open_free_port(self, port: int) -> None:
+        if port not in self._ports:
+            pass
+        else:
+            return
+
