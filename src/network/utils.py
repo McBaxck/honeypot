@@ -22,7 +22,7 @@ def get_public_ip():
         ip = response.json()['ip']
         return ip
     except Exception as e:
-        return '???'
+        return None
 
 
 def get_private_ip_and_iface():

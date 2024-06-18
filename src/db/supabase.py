@@ -4,8 +4,7 @@ from flask import Response
 from postgrest import APIResponse
 from supabase import create_client, Client
 from dataclasses import dataclass
-
-from src.network.utils import hash_password, check_password
+from src.network.utils import check_password
 
 
 @dataclass
@@ -91,10 +90,18 @@ class AccountDB(SupabaseHandler):
         :return: True si l'utilisateur existe et le mot de passe correspond, sinon False.
         """
         # Requête pour trouver l'utilisateur avec le nom d'utilisateur spécifié.
-        response = self._client.table("honeypots_registry").select("user, password").eq("user", username).execute()
+        response = self._client.table("accounts").select("user, password").eq("user", username).execute()
         # Vérifie si la réponse contient des données et si le mot de passe correspond.
         return check_password(response.data[0]['password'].encode(), password)
 
     def get_hp_name(self, username: str) -> APIResponse:
-        response = self._client.table("honeypots_registry").select("*").eq("user", username).execute()
+        response = self._client.table("accounts").select("*").eq("user", username).execute()
         return response
+
+
+class ModuleConfDB(SupabaseHandler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def post_conf_json(self, conf: dict):
+        return self.insert(table="modules_conf", data=conf)

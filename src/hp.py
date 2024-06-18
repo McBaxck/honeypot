@@ -15,6 +15,7 @@ from src.network.connection import (create_tcp_socket,
                                     handle_udp_connection)
 from src.cache.history import History
 from src.db.supabase import HoneyPotHandler
+from src.network.func.open_port_inet import OpenPortInet
 from src.protocol.detector.detector import detect_protocol
 from src.protocol.ssh.ssh import FakeSSHServer
 from src.host import nslookup_with_geolocation
@@ -85,19 +86,23 @@ class HolyPot:
         while 1:
             events: list = self.poller.poll(1000)
             for fd, event in events:
-                sock: socket.socket = self.fd_to_socket[fd]
-                if event & select.POLLIN:
-                    # TCP ---------------------------------
-                    if sock.type == socket.SOCK_STREAM:
-                        global_logger.info('Received a connection from: %s', sock.fileno())
-                        self._tcp(sock)
-                    # UDP ---------------------------------
-                    if sock.type == socket.SOCK_DGRAM:
-                        global_logger.info('Received a message from %s', sock.fileno())
-                        self._udp(sock)
-                    if sock.type == ssl.SSLSocket:
-                        global_logger.info("SSL handshake")
-                global_logger.info("Current History -> ", self._history.show())
+                try:
+                    sock: socket.socket = self.fd_to_socket[fd]
+                    if event & select.POLLIN:
+                        # TCP ---------------------------------
+                        if sock.type == socket.SOCK_STREAM:
+                            global_logger.info('Received a connection from: %s', sock.fileno())
+                            self._tcp(sock)
+                        # UDP ---------------------------------
+                        if sock.type == socket.SOCK_DGRAM:
+                            global_logger.info('Received a message from %s', sock.fileno())
+                            self._udp(sock)
+                        if sock.type == ssl.SSLSocket:
+                            global_logger.info("SSL handshake")
+                except KeyError:
+                    pass
+                finally:
+                    global_logger.info("Current History -> ", self._history.show())
 
     def add_service(self, on_ports: list[int], service: str) -> None:
         for port in on_ports:
@@ -160,12 +165,16 @@ class HolyPot:
 
     def register_in_database(self, communication_type: str, source_ip: str, source_port: int,
                              data: str, dest_port: int, dest_ip: str) -> None:
-        if ipaddress.IPv4Address(dest_ip).is_global:
-            country: str = nslookup_with_geolocation(dest_ip)
-        elif ipaddress.IPv4Address(dest_ip).is_private:
-            country: str = "LOCAL_POS"
+        #print("DESTINATION IP ADDRESS => ", dest_ip)
+        if dest_ip != 'localhost':
+            if ipaddress.IPv4Address(dest_ip).is_global:
+                country: str = nslookup_with_geolocation(dest_ip)
+            elif ipaddress.IPv4Address(dest_ip).is_private:
+                country: str = "LOCAL_POS"
+            else:
+                country: str = "??"
         else:
-            country: str = "??"
+            country: str = "LOCAL"
         log: dict[str, Any] = {
             'type': communication_type,
             'source_ip': source_ip,
@@ -200,7 +209,8 @@ class HolyPot:
 
     def open_free_port(self, port: int) -> None:
         if port not in self._ports:
-            pass
+            open_port: OpenPortInet = OpenPortInet()
+            open_port.open_free_port(port)
         else:
             return
 

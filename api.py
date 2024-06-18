@@ -10,12 +10,14 @@ from dataclasses import dataclass
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify, abort, Response
-from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB
+from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
 from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
     check_password, get_own_ip, get_public_ip, get_own_mac_addr, get_os_version
 import warnings
+
+from src.network.func.scan import NetworkScanner
 
 # Ignorer tous les avertissements
 warnings.filterwarnings("ignore")
@@ -23,7 +25,7 @@ warnings.filterwarnings("ignore")
 BASE_ROUTE: str = "/holypot-api/v1"
 
 app = Flask(__name__)
-CORS(app, resources={r"*": {"origins": ["*"]}})
+CORS(app, resources={r"/holypot-api/v1/*": {"origins": "*"}})
 
 global_logger = logging.getLogger('GLOBAL_SET')
 
@@ -55,19 +57,17 @@ class HolyPotApp:
         self._waiting_services: list[WaitingService] = []
 
     def run(self):
-        time.sleep(5)
-        if not self.is_running:
-            self.holypot = HolyPot(self.hp_set)
-            for waiting_service in self._waiting_services:
-                print("Adding waiting service", waiting_service.service)
-                print("Adding waiting ports", waiting_service.on_ports)
-                self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
-            thread = threading.Thread(target=self.holypot.run)
-            thread.start()
-            self.is_running = True
-            return jsonify({"message": "OK"})
-        else:
-            return jsonify({"message": "Already running..."})
+        time.sleep(3)
+        self.holypot = HolyPot(self.hp_set)
+        for waiting_service in self._waiting_services:
+            print("Adding waiting service", waiting_service.service)
+            print("Adding waiting ports", waiting_service.on_ports)
+            self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
+        thread = threading.Thread(target=self.holypot.run)
+        thread.start()
+        self.is_running = True
+        return jsonify({"message": "OK"})
+
 
     def status(self):
         return jsonify({"status": "OK"})
@@ -91,6 +91,7 @@ class HolyPotApp:
 
     def set_config(self):
         data = request.json
+        print("/set_config ---> ", data)
         self.hp_set.host = data['host']
         self.hp_set.ports = data['ports']
         self.hp_set.name = data['name']
@@ -142,6 +143,20 @@ class HolyPotApp:
             return Response("Bad Request", status=400)
 
     @staticmethod
+    def post_service_conf():
+        data: dict = request.json
+        db_handler: ModuleConfDB = ModuleConfDB()
+        db_handler.post_conf_json(data)
+        return "Saving configuration for {}".format(data.get("module"))
+
+    @staticmethod
+    def add_service_account():
+        data: dict = request.json
+        username = data.get("username")
+        password = data.get("password")
+        module = data.get("module")
+
+    @staticmethod
     def get_network_devices():
         return jsonify(scan(get_network_ip_with_cidr()))
 
@@ -186,6 +201,11 @@ def get_srv_logs():
     return holy_pot_app.get_service_logs()
 
 
+@app.route(f'{BASE_ROUTE}/service/configuration', methods=['POST'])
+def save_service_conf():
+    return holy_pot_app.post_service_conf()
+
+
 @app.route(f'{BASE_ROUTE}/shutdown', methods=['GET'])
 def shutdown():
     return holy_pot_app.shutdown()
@@ -223,7 +243,8 @@ def get_http_logs():
 
 @app.route(f'{BASE_ROUTE}/network/scan', methods=['GET'])
 def get_net_scan_devices():
-    return holy_pot_app.get_network_devices()
+    network_scanner: NetworkScanner = NetworkScanner()
+    return network_scanner.start()
 
 
 @app.route(f'{BASE_ROUTE}/host', methods=['GET'])
