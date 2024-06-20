@@ -98,6 +98,14 @@ class AccountDB(SupabaseHandler):
         response = self._client.table("accounts").select("*").eq("user", username).execute()
         return response
 
+    def get_account(self, name: str) -> APIResponse:
+        response = self._client.table("accounts").select("*").eq("name", name).execute()
+        return response
+
+    def get_account_by_username(self, username: str) -> APIResponse:
+        response = self._client.table("accounts").select("*").eq("user", username).execute()
+        return response
+
 
 class ModuleConfDB(SupabaseHandler):
     def __init__(self) -> None:
@@ -105,3 +113,23 @@ class ModuleConfDB(SupabaseHandler):
 
     def post_conf_json(self, conf: dict):
         return self.insert(table="modules_conf", data=conf)
+
+
+class StateDB(SupabaseHandler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def change_run_state(self, state: bool, honeypot) -> APIResponse:
+        return self._client.table("state").update({"run": state}).eq("honeypot_id", honeypot).execute()
+
+    def get_state(self, honeypot) -> APIResponse:
+        response = self._client.table("state").select("*").eq("honeypot_id", honeypot).execute()
+        return response
+
+    def get_state_by_ip(self, ip) -> APIResponse:
+        response = self._client.table("state").select("*").eq("ip", ip).execute()
+        return response
+
+    def set_honeypot_state(self, data) -> APIResponse:
+        response = self.insert(table="state", data=data)
+        return response

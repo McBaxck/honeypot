@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify, abort, Response
-from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB
+from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
 from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
@@ -68,9 +68,15 @@ class HolyPotApp:
         self.is_running = True
         return jsonify({"message": "OK"})
 
+    @staticmethod
+    def status(honeypot):
+        status_db: StateDB = StateDB()
+        return jsonify(status_db.get_state(honeypot))
 
-    def status(self):
-        return jsonify({"status": "OK"})
+    @staticmethod
+    def get_ip_status(ip):
+        status_db: StateDB = StateDB()
+        return jsonify(status_db.get_state_by_ip(ip))
 
     def shutdown(self):
         if self.holypot:
@@ -100,32 +106,35 @@ class HolyPotApp:
         return jsonify({"message": "OK"})
 
     @staticmethod
+    def set_status():
+        data = request.json
+        state_db: StateDB = StateDB()
+        state_db.set_honeypot_state(data)
+        return jsonify({"message": "OK"})
+
+    @staticmethod
     def get_service_logs():
         data = request.json
         service: str = data["service"]
         return jsonify([list_content_folder("src/protocol/{service}/logs/".format(service=service))])
 
     @staticmethod
+    def get_account(username):
+        account_db: AccountDB = AccountDB()
+        return jsonify(account_db.get_account_by_username(username).data[0])
+
+    @staticmethod
     def register():
-        hp_id = uuid.uuid4().hex
         data: dict = request.json
-        honeypot_data: dict = {
+        account_data: dict = {
             "user": data["username"],
             "password": hash_password(data["password"]).decode(),
-            "honeypot_id": hp_id,
             "email": data["email"] if data.get("email") else f"{data['username']}@holypot-domain.fr",
-            "name": data["name"] if data.get("name") else f"honeypot{random.randint(1, 100000)}"
-
+            "name": data["name"] if data.get("name") else f"honeypot{random.randint(1, 100000)}",
         }
-        db_handler: HoneyPotHandler = HoneyPotHandler()
         account_handler: AccountDB = AccountDB()
-        print("DATABASE RESULT => ", account_handler.get_hp_name(username=data["username"]).data)
-        try:
-            db_handler.insert(table='honeypots_registry', data=honeypot_data)
-            return jsonify({"name": honeypot_data.get("name")})
-        except Exception as e:
-            print("error_request (signin) -> ", e)
-            return Response("Bad Request", status=400)
+        account_handler.insert("accounts", account_data)
+        return jsonify(account_handler.get_account(name=account_data['name']).data[0])
 
     @staticmethod
     def signin():
@@ -190,10 +199,22 @@ def run():
     return holy_pot_app.run()
 
 
-@app.route(f'{BASE_ROUTE}/status', methods=['GET'])
-def status():
+@app.route(f'{BASE_ROUTE}/status/:hid', methods=['GET'])
+def status(hid):
     time.sleep(3)
-    return holy_pot_app.status()
+    return holy_pot_app.status(hid)
+
+
+@app.route(f'{BASE_ROUTE}/status/ip/:ip', methods=['GET'])
+def status_ip(ip):
+    time.sleep(3)
+    return holy_pot_app.get_ip_status(ip)
+
+
+@app.route(f'{BASE_ROUTE}/status', methods=['POST'])
+def set_hp_status():
+    time.sleep(3)
+    return holy_pot_app.set_status()
 
 
 @app.route(f'{BASE_ROUTE}/service/logs', methods=['GET', 'POST'])
@@ -209,6 +230,11 @@ def save_service_conf():
 @app.route(f'{BASE_ROUTE}/shutdown', methods=['GET'])
 def shutdown():
     return holy_pot_app.shutdown()
+
+
+@app.route(f'{BASE_ROUTE}/account/<username>', methods=['GET'])
+def get_account_username(username):
+    return holy_pot_app.get_account(username)
 
 
 @app.route(f'{BASE_ROUTE}/config', methods=['GET'])
