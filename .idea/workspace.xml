@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.3.1806-PATCH">
+    <list default="true" id="25a6925a-054e-4e09-82b6-56799f856849" name="Changes" comment="Basecode v0.3.2006-PATCH">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/db/supabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/supabase.py" afterDir="false" />
@@ -157,7 +157,8 @@
       <workItem from="1718606261997" duration="150000" />
       <workItem from="1718606441332" duration="15580000" />
       <workItem from="1718719630438" duration="2747000" />
-      <workItem from="1718870914057" duration="11578000" />
+      <workItem from="1718870914057" duration="16456000" />
+      <workItem from="1718959709961" duration="1730000" />
     </task>
     <task id="LOCAL-00001" summary="Basecode v0.1.0102">
       <option name="closed" value="true" />
@@ -255,7 +256,23 @@
       <option name="project" value="LOCAL" />
       <updated>1718719326755</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Basecode v0.3.2006-PATCH">
+      <option name="closed" value="true" />
+      <created>1718899298481</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1718899298481</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Basecode v0.3.2006-PATCH">
+      <option name="closed" value="true" />
+      <created>1718899306684</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1718899306684</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -285,7 +302,8 @@
     <MESSAGE value="Basecode v0.2.2203-PATCH" />
     <MESSAGE value="Basecode v0.2.2903-PATCH" />
     <MESSAGE value="Basecode v0.3.1806-PATCH" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.3.1806-PATCH" />
+    <MESSAGE value="Basecode v0.3.2006-PATCH" />
+    <option name="LAST_COMMIT_MESSAGE" value="Basecode v0.3.2006-PATCH" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/honeypot$main.coverage" NAME="main Coverage Results" MODIFIED="1708904125102" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

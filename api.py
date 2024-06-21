@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify, abort, Response
-from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB
+from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB, NetworkConfDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
 from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
@@ -189,6 +189,20 @@ class HolyPotApp:
         except (TypeError, Exception):
             return jsonify({"message": "error fetching logs"})
 
+    @staticmethod
+    def save_network_conf():
+        data = request.json
+        honeypot_id = data["honeypot_id"]
+        conf = data["conf"]
+        net_handler: NetworkConfDB = NetworkConfDB()
+        net_handler.save_conf(honeypot_id, conf)
+        return jsonify({"message": "ok"})
+
+    @staticmethod
+    def get_network_conf(honeypot_id):
+        net_handler: NetworkConfDB = NetworkConfDB()
+        return net_handler.get_network_conf(honeypot_id).data[0]
+
 
 hp_set: HolyPotConfig = HolyPotConfig()
 holy_pot_app = HolyPotApp(hp_set)
@@ -292,6 +306,16 @@ def hp_register():
 @app.route(f'{BASE_ROUTE}/signin', methods=['POST'])
 def hp_signin():
     return holy_pot_app.signin()
+
+
+@app.route(f'{BASE_ROUTE}/network/conf', methods=['POST'])
+def set_netconf():
+    return holy_pot_app.save_network_conf()
+
+
+@app.route(f'{BASE_ROUTE}/network/conf/<honeypot_id>', methods=['GET'])
+def get_netconf(honeypot_id):
+    return holy_pot_app.get_network_conf(honeypot_id)
 
 
 if __name__ == '__main__':

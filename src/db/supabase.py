@@ -133,3 +133,21 @@ class StateDB(SupabaseHandler):
     def set_honeypot_state(self, data) -> APIResponse:
         response = self.insert(table="state", data=data)
         return response
+
+
+class NetworkConfDB(SupabaseHandler):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def save_conf(self, honeypot_id: str, conf: dict) -> APIResponse:
+        if not self.get_network_conf(honeypot_id).data:
+            print("record network not exists")
+            return self.insert(table="network_conf", data={"honeypot_id": honeypot_id, "conf": conf})
+        else:
+            print("record network exists : ", self.get_network_conf(honeypot_id))
+            return (self._client.table("network_conf").update({"honeypot_id": honeypot_id, "conf": conf})
+                    .eq("honeypot_id", honeypot_id).execute())
+
+    def get_network_conf(self, honeypot_id: str) -> APIResponse:
+        response = self._client.table("network_conf").select("*").eq("honeypot_id", honeypot_id).execute()
+        return response
