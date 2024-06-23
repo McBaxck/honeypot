@@ -1,11 +1,9 @@
 import datetime
-import logging.config
 import logging
 import random
 import threading
 import time
 import os
-import uuid
 from dataclasses import dataclass
 
 from flask_cors import CORS
@@ -58,15 +56,18 @@ class HolyPotApp:
 
     def run(self):
         time.sleep(3)
-        self.holypot = HolyPot(self.hp_set)
-        for waiting_service in self._waiting_services:
-            print("Adding waiting service", waiting_service.service)
-            print("Adding waiting ports", waiting_service.on_ports)
-            self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
-        thread = threading.Thread(target=self.holypot.run)
-        thread.start()
-        self.is_running = True
-        return jsonify({"message": "OK"})
+        if not self.is_running:
+            self.holypot = HolyPot(self.hp_set)
+            for waiting_service in self._waiting_services:
+                print("Adding waiting service", waiting_service.service)
+                print("Adding waiting ports", waiting_service.on_ports)
+                self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
+            thread = threading.Thread(target=self.holypot.run)
+            thread.start()
+            self.is_running = True
+            return jsonify({"message": "OK"})
+        else:
+            return Response("Already running", status=403)
 
     @staticmethod
     def status(honeypot):
@@ -81,6 +82,7 @@ class HolyPotApp:
     def shutdown(self):
         if self.holypot:
             self.holypot.shutdown()
+        self.is_running = False
         return jsonify({"message": "OK"})
 
     def get_config(self):
@@ -311,6 +313,11 @@ def hp_signin():
 @app.route(f'{BASE_ROUTE}/network/conf', methods=['POST'])
 def set_netconf():
     return holy_pot_app.save_network_conf()
+
+
+@app.route(f'{BASE_ROUTE}/run/status', methods=['GET'])
+def get_run_status():
+    return jsonify({"is_running": holy_pot_app.is_running})
 
 
 @app.route(f'{BASE_ROUTE}/network/conf/<honeypot_id>', methods=['GET'])

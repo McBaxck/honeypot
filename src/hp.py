@@ -101,8 +101,8 @@ class HolyPot:
                             global_logger.info("SSL handshake")
                 except KeyError:
                     pass
-                finally:
-                    global_logger.info("Current History -> ", self._history.show())
+                #finally:
+                    #global_logger.info("Current History -> ", self._history.show())
 
     def add_service(self, on_ports: list[int], service: str) -> None:
         for port in on_ports:
