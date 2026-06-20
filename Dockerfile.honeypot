@@ -1,0 +1,16 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Ports émulés : SSH, HTTP, SMTP, Telnet, FTP, puis les ports génériques du poller TCP/UDP
+EXPOSE 8825 9999 9924 9925 9926 8080 8081 8082
+
+CMD ["python", "main.py"]

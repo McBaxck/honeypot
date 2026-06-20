@@ -25,7 +25,7 @@ class History:
 
     def retrieve(self, value: str) -> Union[list[str], None]:
         for k, v in self.buffer.items():
-            if v in value:
+            if value in v:
                 return self.buffer[k]
             else:
                 continue

@@ -113,11 +113,8 @@ def get_network_ip_with_cidr():
         return "No active network interface found."
 
 
-import netifaces as ni
-
-
 def get_default_gateway():
-    return ni.gateways()['default'][ni.AF_INET][0]
+    return netifaces.gateways()['default'][netifaces.AF_INET][0]
 
 
 def get_own_ip():

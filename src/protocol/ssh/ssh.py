@@ -6,7 +6,7 @@ import threading
 import socket
 import logging
 
-from src.db.supabase import SSHServerCommandHandler
+from src.db.postgres import SSHServerCommandHandler
 from src.host.devices.linux.registry import Ubuntu
 
 DEFAULT_SSH_USERNAME: str = "root"
@@ -44,14 +44,21 @@ class Server(paramiko.ServerInterface):
 
 
 class FakeSSHServer:
-    def __init__(self, host_key: str) -> None:
+    def __init__(self, host_key: str, gate) -> None:
         self.host_key = paramiko.RSAKey(filename=host_key)
         self.device: Ubuntu = Ubuntu()
         self.cmd_history: list[str] = []
         self._db: SSHServerCommandHandler = SSHServerCommandHandler()
+        self.gate = gate
+        self._host: str = ''
+        self._port: int = 0
         ssh_logger.info("Initializing SSH...")
 
-    def handle_client(self, client):
+    def handle_client(self, client, addr):
+        transport = None
+        docker_transport = None
+        channel = None
+        docker_channel = None
         try:
             # Configuration du serveur SSH pour le client
             transport = paramiko.Transport(client)
@@ -82,14 +89,17 @@ class FakeSSHServer:
                     if read_channel is channel:
                         # Transmettre les données du client au Docker
                         data = channel.recv(1024)
-                        client_buffer += data.decode()
+                        try:
+                            client_buffer += data.decode()
+                        except UnicodeDecodeError:
+                            client_buffer += str(data)
                         if ('\r' in client_buffer) or ('\n' in client_buffer) or ('\r\n' in client_buffer):
                             print("Detect command -> ", client_buffer)
                             log: dict = {
-                                'source_ip': '',
-                                'source_port': 0,
-                                'dest_ip': '',
-                                'dest_port': 0,
+                                'source_ip': addr[0],
+                                'source_port': addr[1],
+                                'dest_ip': self._host,
+                                'dest_port': self._port,
                                 'command': client_buffer
                             }
                             ssh_logger.info("Received command: \n" + str(log))
@@ -108,12 +118,21 @@ class FakeSSHServer:
         except Exception as e:
             print(f"Erreur lors de la transmission du shell: {e}")
         finally:
-            # Close bidirectional channels...
-            docker_channel.close()
-            channel.close()
+            # Close bidirectional channels... (un échec précoce du handshake SSH peut
+            # laisser channel/docker_channel/docker_transport non assignés)
+            if docker_channel is not None:
+                docker_channel.close()
+            if docker_transport is not None:
+                docker_transport.close()
+            if channel is not None:
+                channel.close()
+            if transport is not None:
+                transport.close()
 
     def start_server(self, host: str, port: int) -> None:
         """"""
+        self._host = host
+        self._port = port
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((host, port))
@@ -123,8 +142,13 @@ class FakeSSHServer:
             while True:
                 client, addr = server.accept()
                 print('Connection from:', addr)
-                # threading.Thread(target=self.handle_client, args=(client,)).start()
-                self.handle_client(client)
+                if not self.gate.intake(addr[0], addr[1], host, port, 'ssh'):
+                    client.close()
+                    continue
+                # threading.Thread(target=self.handle_client, args=(client, addr)).start()
+                self.handle_client(client, addr)
         except KeyboardInterrupt:
             self.device.power_off()
             time.sleep(1)
+        finally:
+            server.close()

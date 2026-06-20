@@ -1,24 +1,22 @@
-import ipaddress
 import os
 import select
 import socket
 import ssl
 import threading
 import datetime
-from typing import Union, Any
+from typing import Union
 # CUSTOM IMPORTS -------------------
 from src.config import *
 from src.firewall.embedded_fw import EmbeddedFirewall
+from src.firewall.gate import ConnectionGate
 from src.network.connection import (create_tcp_socket,
                                     create_udp_socket,
                                     handle_tcp_connection,
                                     handle_udp_connection)
 from src.cache.history import History
-from src.db.supabase import HoneyPotHandler
+from src.db.postgres import HoneyPotHandler
 from src.network.func.open_port_inet import OpenPortInet
-from src.protocol.detector.detector import detect_protocol
 from src.protocol.ssh.ssh import FakeSSHServer
-from src.host import nslookup_with_geolocation
 from src.protocol.telnet.telnet import FakeTelnetServer
 from src.protocol.web.server import launch_web_server
 from src.protocol.ftp.ftp import FakeFTPServer
@@ -47,6 +45,7 @@ class HolyPot:
         global_logger.info('Init an empty history buffer (BUF_SIZE=4096)...')
         self._db: HoneyPotHandler = HoneyPotHandler()
         self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
+        self._gate: ConnectionGate = ConnectionGate(self._fw, self._history, self._db)
         self.config: HolyPotConfig = holypot_config
         global_logger.info('Importing default configurations...')
         self._active_threads: list[threading.Thread] = []
@@ -111,81 +110,54 @@ class HolyPot:
                     self._ports.remove(port)
                 if service == 'ssh':
                     global_logger.info('Adding service <SSH> to port: %s' % port)
-                    ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa')
+                    ssh_server: FakeSSHServer = FakeSSHServer(host_key='./src/host/.ssh/test_rsa', gate=self._gate)
                     ssh_server_thread = threading.Thread(target=ssh_server.start_server, args=(self._host, port))
                     ssh_server_thread.start()
                     self._active_threads.append(ssh_server_thread)
                 if service == 'telnet':
                     global_logger.info('Adding service <Telnet> to port: %s' % port)
-                    telnet_server: FakeTelnetServer = FakeTelnetServer(host=self._host, port=port)
+                    telnet_server: FakeTelnetServer = FakeTelnetServer(host=self._host, port=port, gate=self._gate)
                     telnet_server_thread = threading.Thread(target=telnet_server.start)
                     telnet_server_thread.start()
                 if service == 'http':
                     global_logger.info('Adding service <HTTP> to port: %s' % port)
                     web_server_thread: threading.Thread = threading.Thread(target=launch_web_server,
-                                                                           args=(DEFAULT_URL_WEBPAGE, port))
+                                                                           args=(DEFAULT_URL_WEBPAGE, port, self._gate))
                     web_server_thread.start()
                     self._active_threads.append(web_server_thread)
                 if service == 'ftp':
                     global_logger.info('Adding service <FTP> to port: %s' % port)
-                    ftp_server: FakeFTPServer = FakeFTPServer(port=port)
+                    ftp_server: FakeFTPServer = FakeFTPServer(port=port, gate=self._gate)
                     ftp_server_thread: threading.Thread = threading.Thread(target=ftp_server.start_server)
                     ftp_server_thread.start()
                     self._active_threads.append(ftp_server_thread)
                 if service == 'smtp':
                     global_logger.info('Adding service <SMTP> to port: %s' % port)
                     smtp_server_thread: threading.Thread = threading.Thread(target=start_smtp,
-                                                                            args=(port,))
+                                                                            args=(self._host, port, self._gate))
                     smtp_server_thread.start()
                     self._active_threads.append(smtp_server_thread)
 
     def _tcp(self, sock: socket.socket) -> None:
         host, data, client, peer = handle_tcp_connection(sock)
-        client_ip, client_port = sock.getsockname()
+        dest_port = sock.getsockname()[1]
         try:
-            global_logger.info('Registering TCP connection <%s:%d>' % (host, client_port))
-            self.register_in_database('tcp', str(client_ip), client_port, data.decode(),
-                                      peer[1], self._host)
+            global_logger.info('Registering TCP connection <%s:%d>' % (host, peer[1]))
+            self._gate.intake(peer[0], peer[1], self._host, dest_port, 'auto', data.decode())
         except ConnectionRefusedError:
             global_logger.info("Connection refused, pass...")
         except UnicodeDecodeError:
-            global_logger.info("Error_Retry>>> registering TCP connection <%s:%d>" % (host, client_port))
-            self.register_in_database('tcp', str(client_ip), client_port, str(data),
-                                      peer[1], self._host)
-        self._history.store(host.ip4[0])
-        self._fw.add_connection(host.ip4[0].__str__())
+            global_logger.info("Error_Retry>>> registering TCP connection <%s:%d>" % (host, peer[1]))
+            self._gate.intake(peer[0], peer[1], self._host, dest_port, 'auto', str(data))
+        client.close()
 
     def _udp(self, sock: socket.socket) -> None:
         host, data, client = handle_udp_connection(sock)
-
-        self.register_in_database('udp', host.ip4[0].__str__(), client[1],
-                                  data.decode(), 0, self._host)
-        self._history.store(host.ip4[0])
-        self._fw.add_connection(host.ip4[0].__str__())
-
-    def register_in_database(self, communication_type: str, source_ip: str, source_port: int,
-                             data: str, dest_port: int, dest_ip: str) -> None:
-        #print("DESTINATION IP ADDRESS => ", dest_ip)
-        if dest_ip != 'localhost':
-            if ipaddress.IPv4Address(dest_ip).is_global:
-                country: str = nslookup_with_geolocation(dest_ip)
-            elif ipaddress.IPv4Address(dest_ip).is_private:
-                country: str = "LOCAL_POS"
-            else:
-                country: str = "??"
-        else:
-            country: str = "LOCAL"
-        log: dict[str, Any] = {
-            'type': communication_type,
-            'source_ip': source_ip,
-            'source_port': source_port,
-            'data': data,
-            'dest_port': dest_port,
-            'dest_ip': dest_ip,
-            'protocol': detect_protocol(data),
-            'country': country
-        }
-        self._db.add_log(log)
+        dest_port = sock.getsockname()[1]
+        try:
+            self._gate.intake(host.ip4[0].__str__(), client[1], self._host, dest_port, 'auto', data.decode())
+        except UnicodeDecodeError:
+            self._gate.intake(host.ip4[0].__str__(), client[1], self._host, dest_port, 'auto', str(data))
 
     def run(self) -> None:
         """"""

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify, abort, Response
-from src.db.supabase import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB, NetworkConfDB
+from src.db.postgres import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB, NetworkConfDB
 from src.hp import HolyPot
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
 from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
@@ -327,7 +327,11 @@ def get_netconf(honeypot_id):
 
 if __name__ == '__main__':
     try:
-        app.run(debug=True)
+        app.run(
+            host=os.environ.get('API_HOST', '0.0.0.0'),
+            port=int(os.environ.get('API_PORT', 5000)),
+            debug=os.environ.get('FLASK_DEBUG', '0') == '1',
+        )
     except KeyboardInterrupt:
         holy_pot_app.shutdown()
         print(f"Ending holypot process at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

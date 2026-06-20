@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - honeypot_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API de pilotage (Flask) — service indépendant, ne tourne jamais le honeypot lui-même.
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      FLASK_DEBUG: ${FLASK_DEBUG:-0}
+    ports:
+      # 5050 côté hôte : le port 5000 est pris par défaut sur macOS (AirPlay Receiver/ControlCenter).
+      - "5050:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Honeypot (SSH/Telnet/FTP/SMTP/HTTP émulés) — service indépendant de l'API.
+  honeypot:
+    build:
+      context: .
+      dockerfile: Dockerfile.honeypot
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+    ports:
+      - "8825:8825"   # SSH
+      - "9999:9999"   # HTTP
+      - "9924:9924"   # SMTP
+      - "9925:9925"   # Telnet
+      - "9926:9926"   # FTP
+      - "8080-8082:8080-8082"
+      - "8080-8082:8080-8082/udp"
+    volumes:
+      # Le honeypot lance de vrais conteneurs Docker (src/host/docker_manager.py) pour
+      # simuler les appareils attaqués (ex: Ubuntu via SSH) : il lui faut le socket Docker
+      # de l'hôte. ATTENTION : ceci donne au conteneur honeypot un accès équivalent
+      # root sur la machine hôte — c'est un compromis nécessaire pour garder cette
+      # fonctionnalité existante, pas un choix anodin.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  honeypot_pgdata:

@@ -4,9 +4,10 @@ import threading
 
 
 class FakeTelnetServer:
-    def __init__(self, host, port):
+    def __init__(self, host, port, gate):
         self.host = host
         self.port = port
+        self.gate = gate
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.socket.listen(5)
@@ -28,10 +29,8 @@ class FakeTelnetServer:
     def start(self):
         while True:
             client, address = self.socket.accept()
+            if not self.gate.intake(address[0], address[1], self.host, self.port, 'telnet'):
+                client.close()
+                continue
             client_thread = threading.Thread(target=self.listen_to_client, args=(client, address))
             client_thread.start()
-
-
-if __name__ == '__main__':
-    server = FakeTelnetServer('0.0.0.0', 23)
-    server.start()

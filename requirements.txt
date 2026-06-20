@@ -1,0 +1,28 @@
+# API web
+Flask==3.1.3
+flask-cors==6.0.5
+
+# Réseau / scan / firewall
+scapy==2.7.0
+python-nmap==0.7.1
+netifaces==0.11.0
+dnspython==2.8.0
+
+# Hôtes / conteneurs
+docker==7.1.0
+psutil==7.2.2
+
+# Protocoles émulés (SSH, FTP, SMTP)
+paramiko==5.0.0
+pyftpdlib==2.2.0
+aiosmtpd==1.4.6
+pexpect==4.9.0
+
+# Persistance
+SQLAlchemy==2.0.51
+psycopg[binary]==3.3.4
+alembic==1.18.4
+bcrypt==5.0.0
+
+# HTTP
+requests==2.34.2
