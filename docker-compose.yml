@@ -43,6 +43,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: postgres
+      # Le conteneur Ubuntu simulé (src/host/devices/linux) est un conteneur frère sur
+      # l'hôte Docker, pas joignable via 0.0.0.0 depuis l'intérieur du conteneur honeypot.
+      DOCKER_HOST_GATEWAY: host.docker.internal
     ports:
       - "8825:8825"   # SSH
       - "9999:9999"   # HTTP
@@ -58,6 +61,10 @@ services:
       # root sur la machine hôte — c'est un compromis nécessaire pour garder cette
       # fonctionnalité existante, pas un choix anodin.
       - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      # host.docker.internal est résolu nativement par Docker Desktop (Mac/Windows) ;
+      # cette ligne le rend aussi disponible sous Docker natif sur Linux.
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy

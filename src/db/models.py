@@ -89,3 +89,27 @@ class NetworkConf(Base):
     conf: Mapped[dict] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class TelnetLog(Base):
+    __tablename__ = 'telnet_logs'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_ip: Mapped[str] = mapped_column(String, nullable=True)
+    source_port: Mapped[int] = mapped_column(Integer, nullable=True)
+    dest_ip: Mapped[str] = mapped_column(String, nullable=True)
+    dest_port: Mapped[int] = mapped_column(Integer, nullable=True)
+    command: Mapped[str] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class FTPLog(Base):
+    __tablename__ = 'ftp_logs'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_ip: Mapped[str] = mapped_column(String, nullable=True)
+    source_port: Mapped[int] = mapped_column(Integer, nullable=True)
+    event: Mapped[str] = mapped_column(String, nullable=True)
+    username: Mapped[str] = mapped_column(String, nullable=True)
+    filename: Mapped[str] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -15,6 +15,12 @@ ALL_PORTS: list[int] = [i for i in range(0, 65535)]
 DEFAULT_URL_WEBPAGE: str = "https://www.example.com/"
 DEFAULT_FILE_WEBPAGE_PATH: str = 'src/protocol/web/cache/index.html'
 
+# Identifiants partagés entre les services émulés (SSH, Telnet) : un honeypot
+# multi-protocole crédible "fuite" les mêmes creds partout, pas des identifiants
+# différents par service.
+DEFAULT_HONEYPOT_USERNAME: str = "root"
+DEFAULT_HONEYPOT_PASSWORD: str = "p@ssw0rd"
+
 
 @dataclass
 class HOST:

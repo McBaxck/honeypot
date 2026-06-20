@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import inspect, select, update as sa_update, delete as sa_delete
 
 from src.db.engine import get_session
-from src.db.models import Account, Log, SSHLog, HTTPLog, ModuleConf, State, NetworkConf
+from src.db.models import Account, Log, SSHLog, HTTPLog, ModuleConf, State, NetworkConf, TelnetLog, FTPLog
 from src.network.utils import check_password
 
 
@@ -68,6 +68,26 @@ class SSHServerCommandHandler(PostgresHandler):
 
     def add_log(self, log: dict) -> DBResult:
         return self.insert(table='ssh_logs', data=log)
+
+
+class TelnetServerCommandHandler(PostgresHandler):
+    model = TelnetLog
+
+    def fetch_all_logs(self) -> DBResult:
+        return self.fetch_all()
+
+    def add_log(self, log: dict) -> DBResult:
+        return self.insert(table='telnet_logs', data=log)
+
+
+class FTPServerLogHandler(PostgresHandler):
+    model = FTPLog
+
+    def fetch_all_logs(self) -> DBResult:
+        return self.fetch_all()
+
+    def add_log(self, log: dict) -> DBResult:
+        return self.insert(table='ftp_logs', data=log)
 
 
 class HTTPServerDB(PostgresHandler):

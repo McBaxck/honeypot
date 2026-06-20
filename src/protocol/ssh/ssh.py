@@ -6,15 +6,25 @@ import threading
 import socket
 import logging
 
+from src.config import DEFAULT_HONEYPOT_USERNAME, DEFAULT_HONEYPOT_PASSWORD
 from src.db.postgres import SSHServerCommandHandler
 from src.host.devices.linux.registry import Ubuntu
 
-DEFAULT_SSH_USERNAME: str = "root"
-DEFAULT_SSH_PASSWORD: str = "p@ssw0rd"
 DEFAULT_CWD: str = os.getcwd()
 
 DEFAULT_USER: str = 'sshuser'
 DEFAULT_PWD: str = 'password'
+
+# Bannière SSH réaliste (calquée sur le vrai OpenSSH du conteneur Ubuntu-link-hp en
+# coulisses) au lieu de la bannière par défaut de paramiko, qui dénonce immédiatement
+# un honeypot Python aux scanners qui fingerprint par grab de bannière.
+FAKE_SSH_BANNER: str = "SSH-2.0-OpenSSH_10.2p1 Ubuntu-2ubuntu3.2"
+
+# Reachability du conteneur Docker frère "Ubuntu" : en exécution directe sur l'hôte,
+# 0.0.0.0 fonctionne. Une fois le honeypot lui-même dockerisé, le conteneur Ubuntu est
+# un conteneur frère sur l'hôte Docker, pas joignable via la boucle locale du conteneur
+# honeypot — d'où DOCKER_HOST_GATEWAY (mis à host.docker.internal par docker-compose.yml).
+DOCKER_HOST_GATEWAY: str = os.environ.get('DOCKER_HOST_GATEWAY', '0.0.0.0')
 
 
 ssh_logger = logging.getLogger('SSH')
@@ -30,8 +40,8 @@ class Server(paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
-        if ((username == DEFAULT_SSH_USERNAME) and
-                (password == DEFAULT_SSH_PASSWORD)):
+        if ((username == DEFAULT_HONEYPOT_USERNAME) and
+                (password == DEFAULT_HONEYPOT_PASSWORD)):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
@@ -62,6 +72,7 @@ class FakeSSHServer:
         try:
             # Configuration du serveur SSH pour le client
             transport = paramiko.Transport(client)
+            transport.local_version = FAKE_SSH_BANNER
             transport.add_server_key(self.host_key)
             server = Server()  # Assurez-vous que Server est correctement défini
             transport.start_server(server=server)
@@ -73,7 +84,7 @@ class FakeSSHServer:
                 raise Exception("Client SSH n'a pas ouvert de canal.")
 
             # Connexion au conteneur Docker
-            docker_transport = paramiko.Transport(('0.0.0.0', 2222))
+            docker_transport = paramiko.Transport((DOCKER_HOST_GATEWAY, 2222))
             docker_transport.connect(username=DEFAULT_USER, password=DEFAULT_PWD)
             docker_channel = docker_transport.open_session()
             docker_channel.get_pty()

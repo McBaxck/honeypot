@@ -47,7 +47,7 @@ class GatedController(Controller):
         super().__init__(handler, port=port, **kwargs)
 
     def factory(self):
-        smtp = GatedSMTP(self.handler, **self.SMTP_kwargs)
+        smtp = GatedSMTP(self.handler, ident="ESMTP Postfix (Ubuntu)", **self.SMTP_kwargs)
         smtp.gate = self.gate
         smtp.listen_port = self._listen_port
         return smtp
