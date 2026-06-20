@@ -14,6 +14,14 @@ from src.db.postgres import FTPServerLogHandler
 # "elradfmw" ci-dessous sinon).
 JAIL_DIR: str = os.path.join(os.path.dirname(__file__), 'jail')
 
+# Le mode passif négocie un port aléatoire à chaque transfert : sans plage fixe, rien
+# n'est publié par docker-compose et la connexion de données échoue systématiquement.
+# masquerade_address est nécessaire en plus : sans elle, pyftpdlib annoncerait l'IP
+# interne du conteneur (ex: 172.x.x.x), injoignable depuis l'extérieur de Docker.
+FTP_PASSIVE_PORTS_START: int = int(os.environ.get('FTP_PASSIVE_PORTS_START', 60000))
+FTP_PASSIVE_PORTS_END: int = int(os.environ.get('FTP_PASSIVE_PORTS_END', 60010))
+FTP_MASQUERADE_ADDRESS: str = os.environ.get('FTP_MASQUERADE_ADDRESS')
+
 
 @dataclass
 class FTPUser:
@@ -95,6 +103,9 @@ class FakeFTPServer:
         handler.listen_port = self.port
         handler.log_db = FTPServerLogHandler()
         handler.banner = FAKE_FTP_BANNER
+        handler.passive_ports = range(FTP_PASSIVE_PORTS_START, FTP_PASSIVE_PORTS_END + 1)
+        if FTP_MASQUERADE_ADDRESS:
+            handler.masquerade_address = FTP_MASQUERADE_ADDRESS
 
         # Créer le serveur FTP
         self.server = FTPServer(("0.0.0.0", self.port), handler)

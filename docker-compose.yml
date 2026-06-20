@@ -46,12 +46,17 @@ services:
       # Le conteneur Ubuntu simulé (src/host/devices/linux) est un conteneur frère sur
       # l'hôte Docker, pas joignable via 0.0.0.0 depuis l'intérieur du conteneur honeypot.
       DOCKER_HOST_GATEWAY: host.docker.internal
+      # Sans ça, le mode passif FTP annoncerait l'IP interne du conteneur (injoignable
+      # depuis l'extérieur de Docker). 127.0.0.1 convient pour du test en local ; en
+      # production, remplacer par l'IP ou le nom DNS publiquement joignable de l'hôte.
+      FTP_MASQUERADE_ADDRESS: ${FTP_MASQUERADE_ADDRESS:-127.0.0.1}
     ports:
       - "8825:8825"   # SSH
       - "9999:9999"   # HTTP
       - "9924:9924"   # SMTP
       - "9925:9925"   # Telnet
       - "9926:9926"   # FTP
+      - "60000-60010:60000-60010"   # FTP passif (data connections)
       - "8080-8082:8080-8082"
       - "8080-8082:8080-8082/udp"
     volumes:

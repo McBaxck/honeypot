@@ -94,8 +94,11 @@ class FakeSSHServer:
             client_buffer: str = ""
 
             while True:
-                # Attendre les données disponibles sur les deux canaux
-                readable, _, _ = select.select([channel, docker_channel], [], [], 0.0)
+                # Attendre les données disponibles sur les deux canaux (appel bloquant :
+                # avec un timeout de 0.0 cette boucle tournerait en busy-wait à 100% CPU
+                # par connexion, ce qui devient vite un problème avec plusieurs clients
+                # concurrents).
+                readable, _, _ = select.select([channel, docker_channel], [], [])
                 for read_channel in readable:
                     if read_channel is channel:
                         # Transmettre les données du client au Docker
@@ -156,8 +159,7 @@ class FakeSSHServer:
                 if not self.gate.intake(addr[0], addr[1], host, port, 'ssh'):
                     client.close()
                     continue
-                # threading.Thread(target=self.handle_client, args=(client, addr)).start()
-                self.handle_client(client, addr)
+                threading.Thread(target=self.handle_client, args=(client, addr), daemon=True).start()
         except KeyboardInterrupt:
             self.device.power_off()
             time.sleep(1)
