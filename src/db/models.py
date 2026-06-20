@@ -113,3 +113,12 @@ class FTPLog(Base):
     username: Mapped[str] = mapped_column(String, nullable=True)
     filename: Mapped[str] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class BlockedIP(Base):
+    __tablename__ = 'blocked_ips'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ip: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    reason: Mapped[str] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

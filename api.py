@@ -1,15 +1,14 @@
 import datetime
+import json
 import logging
 import random
-import threading
 import time
 import os
-from dataclasses import dataclass
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify, abort, Response
-from src.db.postgres import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB, NetworkConfDB
-from src.hp import HolyPot
+from src.db.postgres import HoneyPotHandler, HTTPServerDB, AccountDB, ModuleConfDB, StateDB, NetworkConfDB, \
+    TelnetServerCommandHandler, FTPServerLogHandler, BlockedIPDB
 from src.config import HolyPotConfig, HostConfig, GLOBAL_LOGGING_CONFIG
 from src.network.utils import scan, get_memory_info, get_network_ip_with_cidr, hash_password, \
     check_password, get_own_ip, get_public_ip, get_own_mac_addr, get_os_version
@@ -28,12 +27,6 @@ CORS(app, resources={r"/holypot-api/v1/*": {"origins": "*"}})
 global_logger = logging.getLogger('GLOBAL_SET')
 
 
-@dataclass
-class WaitingService:
-    service: str
-    on_ports: list[int]
-
-
 def list_content_folder(path):
     content = os.listdir(path)  # Liste tous les fichiers et dossiers
     res = {}
@@ -49,25 +42,6 @@ def list_content_folder(path):
 class HolyPotApp:
     def __init__(self, hp_set):
         self.hp_set = hp_set
-        self.holypot = None
-        # self.host_set: HostConfig = HostConfig()
-        self.is_running: bool = False
-        self._waiting_services: list[WaitingService] = []
-
-    def run(self):
-        time.sleep(3)
-        if not self.is_running:
-            self.holypot = HolyPot(self.hp_set)
-            for waiting_service in self._waiting_services:
-                print("Adding waiting service", waiting_service.service)
-                print("Adding waiting ports", waiting_service.on_ports)
-                self.holypot.add_service(service=waiting_service.service, on_ports=waiting_service.on_ports)
-            thread = threading.Thread(target=self.holypot.run)
-            thread.start()
-            self.is_running = True
-            return jsonify({"message": "OK"})
-        else:
-            return Response("Already running", status=403)
 
     @staticmethod
     def status(honeypot):
@@ -78,34 +52,6 @@ class HolyPotApp:
     def get_ip_status(ip):
         status_db: StateDB = StateDB()
         return jsonify(status_db.get_state_by_ip(ip))
-
-    def shutdown(self):
-        if self.holypot:
-            self.holypot.shutdown()
-        self.is_running = False
-        return jsonify({"message": "OK"})
-
-    def get_config(self):
-        return jsonify(self.hp_set.__dict__)
-
-    def add_service(self):
-        data = request.json
-        payload: WaitingService = WaitingService(service=data['service'], on_ports=data['on_ports'])
-        if payload not in self._waiting_services:
-            self._waiting_services.append(payload)
-            return jsonify({data['service']: "OK"})
-        else:
-            return jsonify({data['service']: "Ports already saved as use!"})
-
-    def set_config(self):
-        data = request.json
-        print("/set_config ---> ", data)
-        self.hp_set.host = data['host']
-        self.hp_set.ports = data['ports']
-        self.hp_set.name = data['name']
-        self.hp_set.fw_security = data['fw_security']
-        self.hp_set.mode = data['mode']
-        return jsonify({"message": "OK"})
 
     @staticmethod
     def set_status():
@@ -192,6 +138,60 @@ class HolyPotApp:
             return jsonify({"message": "error fetching logs"})
 
     @staticmethod
+    def get_telnet_logs():
+        db_handler: TelnetServerCommandHandler = TelnetServerCommandHandler()
+        return db_handler.fetch_all_logs().data
+
+    @staticmethod
+    def get_ftp_logs():
+        db_handler: FTPServerLogHandler = FTPServerLogHandler()
+        return db_handler.fetch_all_logs().data
+
+    @staticmethod
+    def get_stats():
+        db_handler: HoneyPotHandler = HoneyPotHandler()
+        stats = db_handler.get_stats()
+        stats['blocked_ips_count'] = len(BlockedIPDB().list_blocked().data)
+        return jsonify(stats)
+
+    @staticmethod
+    def block_ip():
+        data: dict = request.json
+        db_handler: BlockedIPDB = BlockedIPDB()
+        return jsonify(db_handler.block(data['ip'], data.get('reason')).data[0])
+
+    @staticmethod
+    def unblock_ip():
+        data: dict = request.json
+        db_handler: BlockedIPDB = BlockedIPDB()
+        db_handler.unblock(data['ip'])
+        return jsonify({"message": "OK"})
+
+    @staticmethod
+    def get_blocked_ips():
+        db_handler: BlockedIPDB = BlockedIPDB()
+        return jsonify(db_handler.list_blocked().data)
+
+    @staticmethod
+    def stream_logs():
+        """Flux SSE : pousse les nouvelles lignes de la table `logs` (alimentée par
+        ConnectionGate.intake pour chaque connexion, tous protocoles confondus) au fur
+        et à mesure de leur écriture, par polling Postgres toutes les ~1.5s."""
+        db_handler: HoneyPotHandler = HoneyPotHandler()
+        last_id = db_handler.get_max_id()
+
+        def _generate():
+            nonlocal last_id
+            while True:
+                result = db_handler.fetch_since(last_id)
+                for row in result.data:
+                    last_id = row['id']
+                    yield f"data: {json.dumps(row, default=str)}\n\n"
+                time.sleep(1.5)
+
+        return Response(_generate(), mimetype='text/event-stream')
+
+    @staticmethod
     def save_network_conf():
         data = request.json
         honeypot_id = data["honeypot_id"]
@@ -208,11 +208,6 @@ class HolyPotApp:
 
 hp_set: HolyPotConfig = HolyPotConfig()
 holy_pot_app = HolyPotApp(hp_set)
-
-
-@app.route(f'{BASE_ROUTE}/run', methods=['GET'])
-def run():
-    return holy_pot_app.run()
 
 
 @app.route(f'{BASE_ROUTE}/status/:hid', methods=['GET'])
@@ -243,29 +238,9 @@ def save_service_conf():
     return holy_pot_app.post_service_conf()
 
 
-@app.route(f'{BASE_ROUTE}/shutdown', methods=['GET'])
-def shutdown():
-    return holy_pot_app.shutdown()
-
-
 @app.route(f'{BASE_ROUTE}/account/<username>', methods=['GET'])
 def get_account_username(username):
     return holy_pot_app.get_account(username)
-
-
-@app.route(f'{BASE_ROUTE}/config', methods=['GET'])
-def get_config():
-    return holy_pot_app.get_config()
-
-
-@app.route(f'{BASE_ROUTE}/service/add', methods=['POST'])
-def add_service():
-    return holy_pot_app.add_service()
-
-
-@app.route(f'{BASE_ROUTE}/config', methods=['POST'])
-def set_config():
-    return holy_pot_app.set_config()
 
 
 @app.route(f'{BASE_ROUTE}/logs', methods=['GET'])
@@ -281,6 +256,41 @@ def get_ssh_logs():
 @app.route(f'{BASE_ROUTE}/logs/http', methods=['GET'])
 def get_http_logs():
     return holy_pot_app.get_http_logs()
+
+
+@app.route(f'{BASE_ROUTE}/logs/telnet', methods=['GET'])
+def get_telnet_logs():
+    return holy_pot_app.get_telnet_logs()
+
+
+@app.route(f'{BASE_ROUTE}/logs/ftp', methods=['GET'])
+def get_ftp_logs():
+    return holy_pot_app.get_ftp_logs()
+
+
+@app.route(f'{BASE_ROUTE}/stream/logs', methods=['GET'])
+def stream_logs():
+    return holy_pot_app.stream_logs()
+
+
+@app.route(f'{BASE_ROUTE}/stats', methods=['GET'])
+def get_stats():
+    return holy_pot_app.get_stats()
+
+
+@app.route(f'{BASE_ROUTE}/firewall/block', methods=['POST'])
+def firewall_block():
+    return holy_pot_app.block_ip()
+
+
+@app.route(f'{BASE_ROUTE}/firewall/unblock', methods=['POST'])
+def firewall_unblock():
+    return holy_pot_app.unblock_ip()
+
+
+@app.route(f'{BASE_ROUTE}/firewall/blocked', methods=['GET'])
+def firewall_blocked():
+    return holy_pot_app.get_blocked_ips()
 
 
 @app.route(f'{BASE_ROUTE}/network/scan', methods=['GET'])
@@ -315,11 +325,6 @@ def set_netconf():
     return holy_pot_app.save_network_conf()
 
 
-@app.route(f'{BASE_ROUTE}/run/status', methods=['GET'])
-def get_run_status():
-    return jsonify({"is_running": holy_pot_app.is_running})
-
-
 @app.route(f'{BASE_ROUTE}/network/conf/<honeypot_id>', methods=['GET'])
 def get_netconf(honeypot_id):
     return holy_pot_app.get_network_conf(honeypot_id)
@@ -331,7 +336,7 @@ if __name__ == '__main__':
             host=os.environ.get('API_HOST', '0.0.0.0'),
             port=int(os.environ.get('API_PORT', 5000)),
             debug=os.environ.get('FLASK_DEBUG', '0') == '1',
+            threaded=True,
         )
     except KeyboardInterrupt:
-        holy_pot_app.shutdown()
-        print(f"Ending holypot process at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Ending API process at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

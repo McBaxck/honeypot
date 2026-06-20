@@ -1,21 +1,24 @@
 import subprocess
+import threading
+import time
 
 
 class EmbeddedFirewall:
     def __init__(self, connection_limit=100, is_active=True):
         self.blocked_ips: set = set()  # IPs effectivement bloquées au niveau iptables (best-effort)
         self.rate_limited_ips: set = set()  # IPs au-dessus du seuil, décision en mémoire (toujours fiable)
+        self.db_blocked_ips: set = set()  # IPs bloquées manuellement via l'API/frontend (table blocked_ips)
         self.ip_connections: dict = {}
         self.connection_limit: int = connection_limit
         self.is_active: bool = is_active
 
     def add_connection(self, ip_address) -> bool:
         """Compte les connexions pour une adresse IP. Retourne False si la connexion doit être
-        rejetée (IP au-dessus du seuil), True si elle peut être acceptée."""
+        rejetée (IP au-dessus du seuil, ou bloquée manuellement), True si elle peut être acceptée."""
         if not self.is_active:
             return True
 
-        if ip_address in self.rate_limited_ips:
+        if self.is_blocked(ip_address):
             return False
 
         self.ip_connections[ip_address] = self.ip_connections.get(ip_address, 0) + 1
@@ -31,7 +34,9 @@ class EmbeddedFirewall:
         return True
 
     def is_blocked(self, ip_address) -> bool:
-        return ip_address in self.rate_limited_ips or ip_address in self.blocked_ips
+        return (ip_address in self.rate_limited_ips
+                or ip_address in self.blocked_ips
+                or ip_address in self.db_blocked_ips)
 
     def block_ip(self, ip_address):
         """Bloque une adresse IP en utilisant iptables."""
@@ -61,4 +66,25 @@ class EmbeddedFirewall:
         print("Adresses IP bloquées :")
         for ip in self.blocked_ips:
             print(ip)
+
+    def sync_blocked_ips_from_db(self) -> None:
+        """Recharge db_blocked_ips depuis la table blocked_ips (alimentée par l'API).
+        Import différé pour éviter une dépendance circulaire au chargement du module."""
+        from src.db.postgres import BlockedIPDB
+        rows = BlockedIPDB().list_blocked().data
+        self.db_blocked_ips = {row['ip'] for row in rows}
+
+    def start_db_sync(self, interval: float = 5.0) -> None:
+        """Démarre un thread daemon qui relit périodiquement la table blocked_ips, pour
+        qu'un blocage posé via l'API ait un effet réel sur ce honeypot sans jamais faire
+        de requête Postgres dans le chemin chaud (chaque connexion entrante)."""
+        def _loop():
+            while True:
+                try:
+                    self.sync_blocked_ips_from_db()
+                except Exception as e:
+                    print(f"Erreur lors de la synchronisation des IP bloquées depuis la base: {e}")
+                time.sleep(interval)
+
+        threading.Thread(target=_loop, daemon=True).start()
 

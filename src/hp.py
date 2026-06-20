@@ -45,6 +45,7 @@ class HolyPot:
         global_logger.info('Init an empty history buffer (BUF_SIZE=4096)...')
         self._db: HoneyPotHandler = HoneyPotHandler()
         self._fw: EmbeddedFirewall = EmbeddedFirewall(is_active=holypot_config.fw_security)
+        self._fw.start_db_sync()
         self._gate: ConnectionGate = ConnectionGate(self._fw, self._history, self._db)
         self.config: HolyPotConfig = holypot_config
         global_logger.info('Importing default configurations...')

@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from sqlalchemy import inspect, select, update as sa_update, delete as sa_delete
+from sqlalchemy import inspect, select, update as sa_update, delete as sa_delete, func
 
 from src.db.engine import get_session
-from src.db.models import Account, Log, SSHLog, HTTPLog, ModuleConf, State, NetworkConf, TelnetLog, FTPLog
+from src.db.models import Account, Log, SSHLog, HTTPLog, ModuleConf, State, NetworkConf, TelnetLog, FTPLog, BlockedIP
 from src.network.utils import check_password
 
 
@@ -58,6 +58,27 @@ class HoneyPotHandler(PostgresHandler):
 
     def add_log(self, log: dict) -> DBResult:
         return self.insert(table='logs', data=log)
+
+    def fetch_since(self, last_id: int) -> DBResult:
+        """Lignes plus récentes que last_id, triées par id croissant — utilisé par le
+        flux SSE pour ne renvoyer que ce qui est nouveau depuis le dernier passage."""
+        with get_session() as session:
+            rows = session.execute(
+                select(Log).where(Log.id > last_id).order_by(Log.id.asc()).limit(200)
+            ).scalars().all()
+            return DBResult(data=[_row_to_dict(r) for r in rows])
+
+    def get_max_id(self) -> int:
+        with get_session() as session:
+            return session.execute(select(func.max(Log.id))).scalar() or 0
+
+    def get_stats(self) -> dict:
+        with get_session() as session:
+            total = session.execute(select(func.count(Log.id))).scalar() or 0
+            by_protocol = dict(session.execute(
+                select(Log.protocol, func.count(Log.id)).group_by(Log.protocol)
+            ).all())
+            return {'total_connections': total, 'by_protocol': by_protocol}
 
 
 class SSHServerCommandHandler(PostgresHandler):
@@ -161,6 +182,30 @@ class StateDB(PostgresHandler):
         row_data = {k: v for k, v in data.items() if k in known_fields}
         row_data['extra'] = {k: v for k, v in data.items() if k not in known_fields}
         return self.insert(table='state', data=row_data)
+
+
+class BlockedIPDB(PostgresHandler):
+    model = BlockedIP
+
+    def block(self, ip: str, reason: Optional[str] = None) -> DBResult:
+        with get_session() as session:
+            existing = session.execute(select(BlockedIP).where(BlockedIP.ip == ip)).scalar_one_or_none()
+            if existing is not None:
+                return DBResult(data=[_row_to_dict(existing)])
+            row = BlockedIP(ip=ip, reason=reason)
+            session.add(row)
+            session.commit()
+            session.refresh(row)
+            return DBResult(data=[_row_to_dict(row)])
+
+    def unblock(self, ip: str) -> DBResult:
+        with get_session() as session:
+            session.execute(sa_delete(BlockedIP).where(BlockedIP.ip == ip))
+            session.commit()
+            return DBResult(data=[])
+
+    def list_blocked(self) -> DBResult:
+        return self.fetch_all()
 
 
 class NetworkConfDB(PostgresHandler):
