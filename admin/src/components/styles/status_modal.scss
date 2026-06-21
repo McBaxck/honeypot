@@ -1,0 +1,33 @@
+@import 'variables';
+
+.setting-modal-body{
+  display: inline-block !important;
+  input[type='text']{
+    padding: 8px 12px;
+    border-radius: $radius-sm;
+    border: 1px solid $color-border;
+    background: $color-bg;
+    text-align: center;
+    font-size: .8em;
+    letter-spacing: .05ch;
+    font-weight: 600;
+    color: $color-text;
+    cursor: pointer;
+  }
+  button{
+    padding: 8px 14px;
+    border: 1px solid $color-border;
+    color: $color-muted;
+    border-radius: $radius-sm;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+    &:hover{
+      background-color: $color-bg;
+      color: $color-text;
+    }
+    &:active{
+      transform: scale(.97);
+    }
+  }
+}

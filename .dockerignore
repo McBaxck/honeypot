@@ -1,0 +1,4 @@
+admin/node_modules
+admin/build
+**/__pycache__
+.git

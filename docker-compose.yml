@@ -74,5 +74,15 @@ services:
       postgres:
         condition: service_healthy
 
+  # Page de téléchargement de l'app desktop (holy-ui packagé en Electron) — l'admin ne
+  # s'utilise plus dans le navigateur. Nécessite d'avoir construit le .dmg en local avant
+  # le build de ce service : voir le commentaire en tête de Dockerfile.admin.
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    ports:
+      - "8090:80"
+
 volumes:
   honeypot_pgdata:

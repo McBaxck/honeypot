@@ -1,0 +1,13 @@
+# L'interface d'administration (holy-ui) s'utilise désormais en application desktop
+# Electron, pas dans le navigateur. Ce service ne fait que servir une page de
+# téléchargement statique + le paquet macOS déjà construit.
+#
+# Un Linux (ce conteneur) ne peut pas produire de .dmg macOS — il faut donc construire
+# le paquet AVANT de lancer `docker compose build admin`, en local sur un Mac :
+#   cd admin && npm run release:mac
+# (génère admin/release/HolyPot Admin-<version>-arm64.dmg, repris ci-dessous tel quel).
+FROM nginx:alpine
+COPY admin/download/index.html /usr/share/nginx/html/index.html
+COPY admin/release/*.dmg /usr/share/nginx/html/downloads/HolyPot-Admin-mac.dmg
+
+EXPOSE 80

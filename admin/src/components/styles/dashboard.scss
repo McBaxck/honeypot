@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import 'variables';
+
+.dashboard {
+  font-family: $font-main;
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .dashboard-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: $color-surface;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card;
+    padding: 16px 20px;
+    min-width: 140px;
+    flex: 1;
+    transition: box-shadow .15s ease, transform .15s ease;
+
+    i {
+      font-size: 1.3em;
+      color: $color-accent;
+      opacity: .85;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.5em;
+      font-weight: 700;
+      color: $color-text;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: .75em;
+      text-transform: uppercase;
+      letter-spacing: .08ch;
+      color: $color-muted;
+    }
+
+    &.highlight {
+      background: $color-dark;
+
+      i, .stat-value, .stat-label {
+        color: white;
+      }
+
+      .stat-label {
+        opacity: .7;
+      }
+    }
+
+    &.danger i {
+      color: $color-danger;
+    }
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        box-shadow: $shadow-card-hover;
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  .panel {
+    background: $color-surface;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card;
+    overflow: hidden;
+
+    .panel-header {
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: .9em;
+      border-bottom: 1px solid $color-border;
+      color: $color-text;
+    }
+
+    .empty {
+      padding: 24px 18px;
+      text-align: center;
+      color: $color-muted;
+      font-size: .85em;
+    }
+  }
+
+  .live-feed {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+    max-height: 280px;
+    overflow-y: auto;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 18px;
+      font-family: $font-mono;
+      font-size: .82em;
+      border-bottom: 1px solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .ip, .dest {
+        color: $color-text;
+      }
+
+      .arrow {
+        color: $color-muted;
+      }
+
+      .country {
+        margin-left: auto;
+        text-transform: uppercase;
+        font-size: .85em;
+        color: $color-muted;
+      }
+
+      .badge {
+        background: $color-accent-soft;
+        color: $color-dark;
+        border-radius: $radius-sm;
+        padding: 2px 8px;
+        font-size: .8em;
+        text-transform: lowercase;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .top-sources {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 18px;
+      font-size: .85em;
+      border-bottom: 1px solid $color-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .ip {
+        font-family: $font-mono;
+        color: $color-text;
+      }
+
+      .count {
+        background: $color-accent-soft;
+        color: $color-dark;
+        border-radius: $radius-sm;
+        padding: 2px 8px;
+        font-weight: 700;
+        font-size: .8em;
+      }
+    }
+  }
+
+  .status-button {
+    width: 100%;
+    font-family: $font-main;
+    font-weight: 600;
+    color: $color-text;
+    border: none;
+    background: $color-surface;
+    box-shadow: $shadow-card;
+    padding: 12px 20px;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: background-color .2s ease-out, color .2s ease;
+
+    &:hover {
+      background-color: $color-dark;
+      color: white;
+    }
+  }
+}

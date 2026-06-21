@@ -1,0 +1,119 @@
+@import 'variables';
+
+.choose-honeypot {
+  background: linear-gradient(135deg, $color-bg 0%, #eef0f3 100%);
+  width: 100%;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  color: $color-text;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  box-sizing: border-box;
+  padding: 40px;
+  font-family: $font-main;
+
+  .honeypots-list {
+    ul {
+      max-height: 80vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 4px !important;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      li {
+        user-select: none;
+        text-align: left;
+        background-color: $color-surface;
+        padding: 18px 26px;
+        width: 420px;
+        list-style-type: none;
+        border-radius: $radius-md;
+        box-shadow: $shadow-card;
+        transition: transform .15s ease, box-shadow .15s ease;
+        cursor: pointer;
+
+        &.orange {
+          background-color: $color-accent;
+          color: $color-dark;
+
+          .action {
+            border-color: rgba($color-dark, .3) !important;
+          }
+        }
+
+        &.purple {
+          background-color: $color-dark;
+          color: white;
+
+          .action {
+            border-color: rgba(white, .3) !important;
+          }
+        }
+
+        .honey-title {
+          span {
+            font-weight: 700;
+            font-size: 1.1em;
+            display: block;
+          }
+
+          small {
+            font-size: .78em;
+            opacity: .7;
+            display: block;
+            margin-top: 4px;
+          }
+
+          .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+
+            .action {
+              border: 1.5px solid rgba(grey, .3);
+              border-radius: $radius-lg;
+              padding: 4px 10px;
+              font-size: .68em;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+          }
+        }
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: $shadow-card-hover;
+        }
+
+        &:active {
+          transform: scale(.98);
+        }
+      }
+    }
+  }
+
+  .illustration {
+    img {
+      max-width: 320px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .choose-honeypot {
+    flex-direction: column;
+
+    .illustration img {
+      max-width: 200px;
+    }
+  }
+}

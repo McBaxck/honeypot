@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import 'variables';
+
+.logs-search{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: $color-surface;
+  box-shadow: $shadow-card;
+  border-radius: $radius-sm;
+  padding: 10px 16px;
+  width: 75%;
+  margin: 16px 0 0 20px;
+
+  i{
+    color: $color-muted;
+  }
+
+  input{
+    border: none;
+    outline: none;
+    flex: 1;
+    font-family: $font-mono;
+    font-size: .85em;
+    background: transparent;
+  }
+
+  button{
+    border: none;
+    background: transparent;
+    color: $color-muted;
+    cursor: pointer;
+
+    &:hover{
+      color: $color-text;
+    }
+  }
+}
+
+.tabs{
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  height: 50px;
+  border-radius: .3rem;
+  background-color: rgba(grey, .1);
+  width: 75%;
+  margin-top: 100px;
+  margin-left: 20px;
+  .tab{
+    width: 150px;
+    height: 40px;
+    background-color: white;
+    border-radius: .7rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: rgba(#333333, .8);
+    box-shadow: 2px 3px 4px rgba(black, .05);
+    &.active{
+      background-color: orange;
+      color: white;
+    }
+    i{
+      margin-right: 8px;
+    }
+    span{
+      font-weight: 700;
+      opacity: .9;
+      text-transform: lowercase;
+      font-size: .9em;
+    }
+  }
+}
+table{
+  border-collapse: collapse;
+  padding: 10px 10px !important;
+  border-radius: .3rem;
+  width: 80%;
+  display: block;
+  height: 400px !important;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  margin-left: 20px;
+  th, td{
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1.3px solid rgba(grey, .1);
+    font-size: .8em;
+    user-select: none;
+  }
+  th{
+    opacity: .7;
+  }
+  td{
+    font-family: "IBM Plex Mono", monospace;
+    color: rgba(#282c34, .7);
+    user-select: none;
+    transition: transform .2s ease;
+    &:hover{
+      cursor: pointer;
+      transform: scale(1.04);
+    }
+  }
+
+  thead{
+    background-color: rgba(black, .03);
+    border-bottom: 2px solid rgba(grey, .2);
+    border-top-left-radius: .3rem;
+    border-top-right-radius: .3rem;
+    tr{
+      padding: 10px;
+      th{
+        margin: 10px !important;
+      }
+    }
+  }
+  tbody{
+    tr{
+      margin: 20px;
+      th{
+        display: inline-block;
+      }
+    }
+  }
+}
+
+.loading{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 6px;
+  color: dimgrey;
+  padding: 10px 10px;
+  i{
+    opacity: .8;
+  }
+  span{
+    font-size: .8em !important;
+    font-weight: 700;
+    opacity: .7;
+  }
+}
+
+.bouton-plus {
+  position: fixed; // Fixe le bouton sur la page
+  bottom: 15px; // Espacement du haut
+  left: 15px; // Espacement de la gauche
+  padding: 10px 18px; // Taille du bouton
+  font-size: 24px; // Taille du texte
+  background-color: #de853c; // Couleur de fond
+  color: white; // Couleur du texte
+  border: none; // Pas de bordure
+  border-radius: 50%; // Rend le bouton circulaire
+  cursor: pointer; // Change le curseur en main au survol
+
+  &:hover {
+    background-color: darken(#007BFF, 10%); // Assombrit le bouton au survol
+  }
+
+  &:focus {
+    outline: none; // Supprime le contour lors du focus
+  }
+}
+.path-saver{
+  box-shadow: 4px 6px 8px rgba(black, .05);
+  border: 2px solid rgba(grey, .07);
+  background-color: rgba(#2c2c2c, .02);
+  padding: 20px 20px;
+  border-radius: .4rem;
+  margin-top: 30px !important;
+  margin-left: 30px;
+  width: 60%;
+  height: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(#2c2c2c, .7);
+  font-weight: 300;
+  .badge{
+    margin-right: 10px;
+  }
+}
+.files{
+  margin-left: 30px;
+  margin-top: 20px;
+  background-color: rgba(#2c2c2c, .02);
+  width: 40%;
+  padding: 20px 25px;
+  border-radius: .3rem;
+  text-align: left;
+  border: 2px solid rgba(grey, .07);
+  box-shadow: 4px 6px 8px rgba(black, .05);
+  .title{
+    font-size: 1.2em;
+    padding-bottom: 10px;
+    font-weight: bolder;
+    opacity: .7;
+    display: block;
+    border-bottom: 2px solid rgba(grey, .1);
+    margin-bottom: 20px;
+  }
+  .file{
+    background-color: rgba(#61dafb, .2);
+    padding: 10px 20px;
+    border-radius: .4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .8em;
+    width: 70%;
+    margin-top: 10px;
+    border: 2px solid rgba(#063364, 0);
+    transition: border .2s ease, transform .2s ease;
+    &:nth-child(1){
+      margin-top: 20px !important;
+    }
+    &:hover{
+      cursor: pointer;
+      transform: scale(1.03);
+      border: 2px solid rgba(#063364, .2);
+    }
+    .name{
+      display: flex;
+      align-items: center;
+      color: #063364;
+      font-weight: 900;
+      opacity: .8;
+      i{
+        margin-right: 10px;
+      }
+    }
+    .export-logfile{
+      button{
+        border: 2px solid rgba(grey, .1);
+        padding: 7px 20px;
+        border-radius: 4rem;
+        font-weight: 800;
+        color: rgba(#282c34, .7);
+        transition: transform .3s ease, border .3s ease;
+        &:hover{
+          cursor: pointer;
+          transform: scale(1.05);
+          border: 2px solid rgba(grey, .3);
+        }
+        &:active{
+          transform: scale(.95);
+          border: 2px solid rgba(grey, .6);
+        }
+      }
+    }
+  }
+}
+
+.badge{
+  background-color: darkorange;
+  padding: 4px 8px;
+  border-radius: .2rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color .2s ease;
+
+  &.blue{
+    background-color: cornflowerblue;
+    &:hover{
+      background-color: rgba(#063364, .7);
+    }
+  }
+  &.purple{
+    background-color: rebeccapurple;
+  }
+  &.pink{
+    background-color: hotpink;
+  }
+  &.red{
+    background-color: darkred;
+  }
+}
+
+.inactive{
+  user-select: none;
+  transform: none !important;
+  background-color: rgba(#0E0E0E, .03) !important;
+  &:hover{
+    border: 2px solid rgba(grey, .3) !important;
+  }
+  color: #2c2c2c !important;
+  span{
+    color: #2c2c2c !important;
+    opacity: .7 !important;
+  }
+  i{
+    color: dimgrey !important;
+  }
+}
+
+.unauthorized{
+  opacity: .6;
+  pointer-events: none !important;
+  user-select: none !important;
+  cursor: not-allowed !important;
+}

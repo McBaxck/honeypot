@@ -1,0 +1,24 @@
+.charts{
+  width: 80% !important;
+  height: 400px !important;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px;
+  .chart{
+    width: 380px;
+    height: 200px;
+    font-size: .8em;
+    background-color: rgba(grey, .03);
+    border-radius: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: border .4s ease;
+    &:hover{
+      cursor: pointer !important;
+      border: 2px solid rgba(grey, .2);
+    }
+  }
+}

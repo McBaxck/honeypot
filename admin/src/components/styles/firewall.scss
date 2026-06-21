@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,400;0,700&display=swap');
+@import 'variables';
+
+.firewall {
+  margin-left: 20px;
+  margin-top: 60px;
+  width: 80%;
+
+  .firewall-header {
+    margin-bottom: 16px;
+
+    h2 {
+      font-family: $font-main;
+      font-size: 1.2em;
+      color: $color-text;
+      margin: 0;
+
+      i {
+        color: $color-danger;
+      }
+    }
+  }
+
+  .block-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+
+    input {
+      font-family: $font-mono;
+      padding: 10px 14px;
+      border-radius: $radius-sm;
+      border: 1px solid $color-border;
+      background: $color-surface;
+    }
+
+    button {
+      background-color: $color-dark;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color .15s ease;
+
+      &:hover {
+        background-color: $color-accent;
+        color: $color-dark;
+      }
+    }
+  }
+
+  .firewall-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: $color-surface;
+    box-shadow: $shadow-card;
+    border-radius: $radius-sm;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+
+    i {
+      color: $color-muted;
+    }
+
+    input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-family: $font-mono;
+      font-size: .85em;
+      background: transparent;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    background: $color-surface;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card;
+    overflow: hidden;
+
+    th, td {
+      text-align: left;
+      padding: 14px;
+      border-bottom: 1px solid $color-border;
+      font-size: .85em;
+    }
+
+    th {
+      opacity: .7;
+      background: $color-bg;
+    }
+
+    td {
+      font-family: $font-mono;
+      color: $color-text;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    button.unblock {
+      background-color: $color-danger-soft;
+      color: $color-danger;
+      border: none;
+      padding: 6px 14px;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color .15s ease, color .15s ease;
+
+      &:hover {
+        background-color: $color-danger;
+        color: white;
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+// Design tokens partagés — évite de redéfinir couleurs/ombres/rayons dans chaque .scss.
+$color-accent: #FCAE13;
+$color-accent-soft: rgba(252, 174, 19, .12);
+$color-dark: #282c34;
+$color-text: #1f2328;
+$color-muted: rgba(31, 35, 40, .6);
+$color-surface: #ffffff;
+$color-bg: #f6f7f9;
+$color-border: rgba(31, 35, 40, .08);
+$color-danger: #d1453b;
+$color-danger-soft: rgba(209, 69, 59, .1);
+$color-success: #1a8754;
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+
+$shadow-card: 0 1px 3px rgba(16, 24, 32, .06), 0 1px 2px rgba(16, 24, 32, .04);
+$shadow-card-hover: 0 6px 16px rgba(16, 24, 32, .1);
+
+$font-main: "Space Grotesk", sans-serif;
+$font-mono: "IBM Plex Mono", monospace;
+
+$protocol-colors: (
+  ssh: #8884d8,
+  http: #82ca9d,
+  smtp: #ffc658,
+  telnet: #ff8042,
+  ftp: #00C49F
+);
+
+@function protocol-color($name) {
+  @return map-get($protocol-colors, $name) or #999;
+}

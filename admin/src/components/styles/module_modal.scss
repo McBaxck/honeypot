@@ -1,0 +1,31 @@
+.setting-modal-footer{
+  small{
+    background-color: rgba(red, .05);
+    padding: 10px 20px;
+    border-radius: .3rem;
+    color: rgba(darkred, .6);
+    display: block;
+    margin-top: 20px;
+    user-select: none;
+    a{
+      display: inline-block;
+      padding: 5px 8px;
+      color: white;
+      background-color: rgba(darkred, .75);
+      border-radius: .4rem;
+      width:auto;
+      margin-left: 6px;
+      font-weight: 800;
+      font-size: .8em;
+      cursor: pointer;
+      transition: transform .3s ease;
+      margin-top: 4px;
+      &:hover{
+        transform: scale(1.05);
+      }
+      &:active{
+        transform: scale(.95);
+      }
+    }
+  }
+}
